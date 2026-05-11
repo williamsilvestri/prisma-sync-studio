@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRISMA SYNC Studio | Multimedia & Design</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deep: '#000000',
+                        navy: '#0a0a0c',
+                        primary: 'rgb(var(--color-primary) / <alpha-value>)',
+                        secondary: 'rgb(var(--color-secondary) / <alpha-value>)',
+                        tertiary: 'rgb(var(--color-tertiary) / <alpha-value>)',
+                    },
+                    fontFamily: {
+                        sans: ['"SF Pro Display"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'SF Pro Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 400;
+            margin: 0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-weight: 600 !important;
+        }
+
+        /* High-End Glassmorphism */
+        .glass {
+            background: rgba(18, 18, 20, 0.4);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgb(var(--color-primary) / 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-nav {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgb(var(--color-primary) / 0.15);
+        }
+
+        /* Subtle Apple-style Neons */
+        .subtle-neon-hover-primary {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .subtle-neon-hover-primary:hover {
+            box-shadow: 0 10px 40px -10px rgb(var(--color-primary) / 0.3);
+            border-color: rgb(var(--color-primary) / 0.5);
+        }
+
+        .subtle-neon-hover-secondary {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .subtle-neon-hover-secondary:hover {
+            box-shadow: 0 10px 40px -10px rgb(var(--color-secondary) / 0.3);
+            border-color: rgb(var(--color-secondary) / 0.5);
+        }
+
+        .subtle-neon-hover-tertiary {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .subtle-neon-hover-tertiary:hover {
+            box-shadow: 0 10px 40px -10px rgb(var(--color-tertiary) / 0.3);
+            border-color: rgb(var(--color-tertiary) / 0.5);
+        }
+
+        /* Metallic Text Gradient */
+        .metallic-text {
+            background: linear-gradient(180deg, #FFFFFF 0%, rgb(var(--color-tertiary)) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            padding-bottom: 0.15em;
+        }
+
+        .custom-scrollbar {
+            scroll-behavior: smooth;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-glow, rgba(255, 255, 255, 0.5));
+            box-shadow: 0 0 10px var(--scrollbar-glow, transparent);
+        }
+
+        /* Global Alignment Utility */
+        .flex-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .viewer-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+    </style>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "framer-motion": "https://esm.sh/framer-motion@10.16.4?external=react,react-dom",
+        "lucide-react": "https://esm.sh/lucide-react@0.292.0?external=react"
+      }
+    }
+  </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useContext, createContext } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { motion, AnimatePresence } from 'framer-motion';
+        import {
+            Video, Camera, PenTool, Box, Upload, CheckCircle, Image as ImageIcon,
+            Lock, LayoutDashboard, Home, Trash2, Edit3, Settings, LogOut, Check, X, LogIn, User, Plus, MessageCircle, Instagram, Briefcase, Tag, Star, ChevronLeft, ChevronRight, Crown, Play, Pause, Maximize, Volume2, VolumeX, HelpCircle, FileText, ChevronDown
+        } from 'lucide-react';
+
+        const disciplineMeta = {
+            video: { color: '#00f7ff', hex: '0, 247, 255', emoji: '🟦', name: 'Edição de Vídeo' },
+            photo: { color: '#ff00ff', hex: '255, 0, 255', emoji: '🟪', name: 'Fotografia' },
+            ilustra: { color: '#7000ff', hex: '112, 0, 255', emoji: '🟫', name: 'Ilustração' },
+            '3d': { color: '#ccff00', hex: '204, 255, 0', emoji: '🟩', name: 'Modelagem 3D' }
+        };
+
+        // === IndexedDB Media Storage (supports large files: videos, images) ===
+        const MediaDB = {
+            dbName: 'nexusMediaDB_v1',
+            storeName: 'media',
+            open() {
+                return new Promise((resolve, reject) => {
+                    const req = indexedDB.open(this.dbName, 1);
+                    req.onupgradeneeded = (e) => { e.target.result.createObjectStore(this.storeName); };
+                    req.onsuccess = (e) => resolve(e.target.result);
+                    req.onerror = (e) => reject(e.target.error);
+                });
+            },
+            async save(id, blob) {
+                const db = await this.open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(this.storeName, 'readwrite');
+                    tx.objectStore(this.storeName).put(blob, id);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (e) => reject(e.target.error);
+                });
+            },
+            async load(id) {
+                const db = await this.open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(this.storeName, 'readonly');
+                    const req = tx.objectStore(this.storeName).get(id);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = (e) => reject(e.target.error);
+                });
+            },
+            async remove(id) {
+                const db = await this.open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(this.storeName, 'readwrite');
+                    tx.objectStore(this.storeName).delete(id);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (e) => reject(e.target.error);
+                });
+            }
+        };
+
+        // Reusable component that renders image or video based on mediaType
+        function MediaThumbnail({ src, mediaType, alt, className, autoPlay = false }) {
+            if (mediaType === 'video') {
+                return <video src={src} className={className} muted loop playsInline autoPlay={autoPlay} preload="metadata" />;
+            }
+            return <img src={src} alt={alt || ''} className={className} />;
+        }
+
+        // Helper to get discipline meta key from category name
+        function getMetaKey(catName) {
+            if(catName === 'Edição de Vídeo') return 'video';
+            if(catName === 'Fotografia') return 'photo';
+            if(catName === 'Ilustração') return 'ilustra';
+            if(catName === 'Modelagem 3D') return '3d';
+            return 'video';
+        }
+
+        // === Immersive Fullscreen Viewer Modal (Fit-to-Content Boundbox) ===
+        function ImmersiveViewer({ item, onClose }) {
+            const metaKey = getMetaKey(item.category);
+            const meta = disciplineMeta[metaKey] || { color: '#ffffff', hex: '255,255,255', name: 'Geral' };
+            const isVideo = item.mediaType === 'video';
+            const videoRef = React.useRef(null);
+            const [playing, setPlaying] = useState(true);
+            const [muted, setMuted] = useState(true);
+
+            // Close on ESC key
+            useEffect(() => {
+                const handler = (e) => { if (e.key === 'Escape') onClose(); };
+                window.addEventListener('keydown', handler);
+                document.body.style.overflow = 'hidden';
+                return () => { window.removeEventListener('keydown', handler); document.body.style.overflow = ''; };
+            }, [onClose]);
+
+            const togglePlay = () => {
+                if (!videoRef.current) return;
+                if (videoRef.current.paused) { videoRef.current.play(); setPlaying(true); }
+                else { videoRef.current.pause(); setPlaying(false); }
+            };
+            const toggleMute = () => {
+                if (!videoRef.current) return;
+                videoRef.current.muted = !videoRef.current.muted;
+                setMuted(videoRef.current.muted);
+            };
+            const goFullscreen = () => {
+                if (videoRef.current?.requestFullscreen) videoRef.current.requestFullscreen();
+            };
+
+            return (
+                <motion.div
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed inset-0 z-[9999]"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
+                    onClick={onClose}
+                >
+                    {/* Close button */}
+                    <button onClick={onClose} className="absolute top-5 right-5 z-[10000] p-3 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white hover:text-black transition-all backdrop-blur-md cursor-pointer">
+                        <X size={22} />
+                    </button>
+
+                    {/* Centered Boundbox: media + title as one unit */}
+                    <div className="absolute inset-0 flex items-center justify-center p-6 md:p-10">
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                            className="flex flex-col items-center"
+                            style={{ width: 'fit-content', maxWidth: '85vw', maxHeight: '80vh' }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Media frame with neon border */}
+                            <div
+                                className="relative rounded-[16px] overflow-hidden border-2"
+                                style={{
+                                    borderColor: meta.color,
+                                    boxShadow: `0 0 40px rgba(${meta.hex}, 0.3), 0 0 100px rgba(${meta.hex}, 0.12)`,
+                                    width: 'fit-content',
+                                    maxWidth: '85vw',
+                                    maxHeight: 'calc(80vh - 70px)',
+                                    lineHeight: 0
+                                }}
+                            >
+                                {isVideo ? (
+                                    <div className="relative group">
+                                        <video
+                                            ref={videoRef}
+                                            src={item.url}
+                                            style={{ maxWidth: '85vw', maxHeight: 'calc(80vh - 70px)', display: 'block' }}
+                                            className="object-contain"
+                                            autoPlay muted={muted} loop playsInline
+                                        />
+                                        {/* Minimal controls overlay */}
+                                        <div className="absolute bottom-0 inset-x-0 p-4 flex items-center gap-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <button onClick={togglePlay} className="p-2 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all cursor-pointer">
+                                                {playing ? <Pause size={18} /> : <Play size={18} />}
+                                            </button>
+                                            <button onClick={toggleMute} className="p-2 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all cursor-pointer">
+                                                {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                                            </button>
+                                            <div className="flex-1" />
+                                            <button onClick={goFullscreen} className="p-2 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all cursor-pointer">
+                                                <Maximize size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={item.url} alt={item.title}
+                                        style={{ maxWidth: '85vw', maxHeight: 'calc(80vh - 70px)', display: 'block' }}
+                                        className="object-contain"
+                                    />
+                                )}
+                            </div>
+
+                            {/* Title bar — attached to the bottom of the media box */}
+                            <motion.div
+                                initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}
+                                className="mt-0 w-full px-6 py-4 rounded-b-[16px] text-center border-x-2 border-b-2"
+                                style={{
+                                    borderColor: meta.color,
+                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                    backdropFilter: 'blur(12px)',
+                                    boxShadow: `0 8px 30px rgba(${meta.hex}, 0.15)`
+                                }}
+                            >
+                                <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-0.5" style={{ color: meta.color }}>{meta.name}</p>
+                                <h3 className="text-lg font-bold text-white tracking-tight">{item.title}</h3>
+                            </motion.div>
+                        </motion.div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        const hexToRgbStr = (hex) => {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(result[3], 16)}` : '0 122 255';
+        };
+
+        const generateWhatsAppLink = (config, payload) => {
+            const template = config.contact.messageTemplate || 'NOVO PEDIDO DE ORÇAMENTO 🚀\n\n📦 Pacote: [NOME_DO_PACOTE]\n🛠️ Especialização: [TIPO_SERVICO]\n\n✨ Itens Inclusos:\n[LISTA_DE_BENEFICIOS_DO_PACOTE]\n\n💰 Resumo de Preço:\n[VALOR_DO_ORÇAMENTO]\n\nEnviado via PRISMA SYNC Studio';
+
+            let message = template
+                .replace('[NOME_DO_PACOTE]', payload.packageName || '')
+                .replace('[TIPO_SERVICO]', payload.serviceType || '')
+                .replace('[LISTA_DE_BENEFICIOS_DO_PACOTE]', (payload.features || []).join('\n'))
+                .replace('[VALOR_DO_ORÇAMENTO]', payload.price || '');
+
+            return `https://wa.me/${config.contact.whatsapp}?text=${encodeURIComponent(message)}`;
+        };
+
+        const initialItems = [
+            { id: '1', title: 'Minimalist Product Render', category: 'Modelagem 3D', url: 'https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=1200&auto=format&fit=crop', isHighlight: true, mediaType: 'image' },
+            { id: '2', title: 'Corporate Identity', category: 'Ilustração', url: 'https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=1200&auto=format&fit=crop', isHighlight: true, mediaType: 'image' },
+            { id: '3', title: 'Studio Photography', category: 'Fotografia', url: 'https://images.unsplash.com/photo-1554310603-d39d43033735?q=80&w=1200&auto=format&fit=crop', isHighlight: true, mediaType: 'image' },
+            { id: '4', title: 'Brand Reel', category: 'Edição de Vídeo', url: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1200&auto=format&fit=crop', isHighlight: true, mediaType: 'image' },
+        ];
+
+        const defaultConfig = {
+            siteName: 'PRISMA SYNC',
+            siteSuffix: '.STUDIO',
+            heroTitle1: 'Criando o',
+            heroTitle2: 'Inimaginável',
+            bio: 'Desenvolvedor Full Stack Sênior & Artista Digital. Focado em criar interfaces minimalistas, aplicações responsivas e experiências audiovisuais de alto impacto.',
+            colors: { primary: '#007aff', secondary: '#5e5ce6', tertiary: '#86868b' },
+            favicon: null,
+            headerLogo: null,
+            bgType: 'abstract',
+            bgImage: null,
+            about: {
+                profilePic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
+                history: 'Somos a PRISMA SYNC.STUDIO, um estúdio multidisciplinar apaixonado por criar experiências digitais refinadas.\n\nCom uma forte base no design minimalista e atenção aos mínimos detalhes, nosso objetivo é unificar estética e funcionalidade em produtos de alta performance. Seja através do código perfeito ou da composição visual impecável, buscamos sempre a excelência.',
+                skills: ['React', 'Framer Motion', 'Tailwind', '3ds Max', 'Maya', 'Photoshop', 'Premiere Pro'],
+                experiences: [
+                ]
+            },
+            contact: {
+                whatsapp: '5511999999999',
+                instagram: 'prismasync',
+                showAvailability: true,
+                availabilityText: 'Aberto a propostas para colaborações via PJ (B2B) ou contratações CLT. Vamos transformar sua ideia em realidade.',
+                messageTemplate: 'NOVO PEDIDO DE ORÇAMENTO 🚀\n\n📦 Pacote: [NOME_DO_PACOTE]\n🛠️ Especialização: [TIPO_SERVICO]\n\n✨ Itens Inclusos:\n[LISTA_DE_BENEFICIOS_DO_PACOTE]\n\n💰 Resumo de Preço:\n[VALOR_DO_ORÇAMENTO]\n\nEnviado via PRISMA SYNC Studio'
+            },
+            pricing: {
+                builderItems: [
+                    { id: 'v1', name: 'Corte e Montagem Estratégica', catId: 'video', unit: 'projeto', price: 200, hours: 2 },
+                    { id: 'v2', name: 'Color Grading Profissional', catId: 'video', unit: 'projeto', price: 180, hours: 1.5 },
+                    { id: 'v3', name: 'Sound Design/Mixagem', catId: 'video', unit: 'projeto', price: 220, hours: 2 },
+                    { id: 'v4', name: 'Legendas Dinâmicas', catId: 'video', unit: 'minuto', price: 80, hours: 1 },
+
+                    { id: 'p1', name: 'Tratamento de Pele', catId: 'photo', unit: 'foto', price: 100, hours: 1 },
+                    { id: 'p2', name: 'Edição High-End', catId: 'photo', unit: 'foto', price: 250, hours: 2 },
+                    { id: 'p3', name: 'Curadoria', catId: 'photo', unit: 'projeto', price: 80, hours: 0.5 },
+
+                    { id: 'm1', name: 'Modelagem Low Poly', catId: '3d', unit: 'objeto', price: 500, hours: 4 },
+                    { id: 'm2', name: 'Texturização PBR', catId: '3d', unit: 'objeto', price: 400, hours: 3 },
+                    { id: 'm3', name: 'Render 4K', catId: '3d', unit: 'cena', price: 800, hours: 5 },
+
+                    { id: 'i1', name: 'Lineart/Sketch', catId: 'ilustra', unit: 'personagem', price: 200, hours: 2 },
+                    { id: 'i2', name: 'Pintura Digital', catId: 'ilustra', unit: 'personagem', price: 500, hours: 4 },
+                    { id: 'i3', name: 'Concept Art', catId: 'ilustra', unit: 'cena', price: 1000, hours: 6 }
+                ],
+                promotions: {
+                    single: { title: 'Pacote Avulso', description: 'Serviços sob demanda e ajustes pontuais rápidos.' },
+                    promo: { badge: 'Combo Audiovisual - 20% OFF', title: 'Identidade + Vídeo Institucional', description: 'O pacote completo para lançamentos de alta conversão.' }
+                },
+                categories: [
+                    {
+                        id: 'video', name: 'Edição de Vídeo',
+                        packages: [
+                            { id: 'v1', name: 'Básico (Social Media)', price: 'R$ 150 - R$ 300', features: ['Reels/TikToks dinâmicos', 'Cortes secos', 'Legendas automáticas'], isPopular: false, link: '' },
+                            { id: 'v2', name: 'Intermediário (Corporativo)', price: 'R$ 600 - R$ 1.200', features: ['Vídeos de até 10min', 'Color Grading', 'Trilha sonora mixada'], isPopular: true, link: '' },
+                            { id: 'v3', name: 'Premium (Cinematográfico)', price: 'R$ 2.500+', features: ['Storytelling avançado', 'SFX premium', 'Motion Graphics', 'Revisões ilimitadas'], isPopular: false, link: '' }
+                        ]
+                    },
+                    {
+                        id: 'photo', name: 'Fotografia',
+                        packages: [
+                            { id: 'p1', name: 'Básico (Ensaio Express)', price: 'R$ 350 - R$ 500', features: ['1h de sessão', '10 fotos tratadas', 'Entrega em 3 dias'], isPopular: false, link: '' },
+                            { id: 'p2', name: 'Intermediário (Evento/Book)', price: 'R$ 1.200 - R$ 2.000', features: ['Cobertura de 4h', 'Galeria Online', 'Tratamento de cor', '30 fotos retocadas'], isPopular: true, link: '' },
+                            { id: 'p3', name: 'Premium (Publicitário)', price: 'R$ 3.500+', features: ['Direção de arte', 'Pós-produção high-end', 'Equipe completa', 'Direitos comerciais'], isPopular: false, link: '' }
+                        ]
+                    },
+                    {
+                        id: '3d', name: 'Modelagem 3D',
+                        packages: [
+                            { id: 'm1', name: 'Básico (Asset Simples)', price: 'R$ 500 - R$ 800', features: ['Objeto único', 'Sem textura complexa', 'Render 1080p'], isPopular: false, link: '' },
+                            { id: 'm2', name: 'Intermediário (Cenário)', price: 'R$ 1.500 - R$ 3.000', features: ['Modelagem complexa', 'Texturização PBR', 'Render 4K', '1 Animação de Câmera'], isPopular: true, link: '' },
+                            { id: 'm3', name: 'Premium (Realista/Animação)', price: 'R$ 5.000+', features: ['Cena completa', 'Iluminação cinematográfica', 'Animação 3D de produto', 'Arquivos fonte'], isPopular: false, link: '' }
+                        ]
+                    },
+                    {
+                        id: 'ilustra', name: 'Ilustração',
+                        packages: [
+                            { id: 'i1', name: 'Básico (Sketch/Ícone)', price: 'R$ 200 - R$ 400', features: ['Ilustração flat', 'Rascunho finalizado', '1 Personagem', 'Uso pessoal'], isPopular: false, link: '' },
+                            { id: 'i2', name: 'Intermediário (Arte Digital)', price: 'R$ 600 - R$ 1.200', features: ['Arte colorida', 'Cenário simples', 'Sombreado dinâmico', 'Uso comercial base'], isPopular: true, link: '' },
+                            { id: 'i3', name: 'Premium (Key Art)', price: 'R$ 2.000+', features: ['Ilustração complexa', 'Full Cover/Branding', 'Alto nível de detalhe', 'Direitos totais'], isPopular: false, link: '' }
+                        ]
+                    }
+                ]
+            },
+            faq: [
+                { id: '1', question: 'Qual o prazo médio de entrega?', answer: 'Depende da complexidade do projeto. Projetos básicos (edições simples, retoques) levam de 3 a 5 dias úteis. Projetos Premium e cinematográficos podem levar de 2 a 4 semanas, com cronograma alinhado previamente.' },
+                { id: '2', question: 'Como funciona o pagamento?', answer: '50% de sinal para início do projeto e 50% na entrega final aprovada. Aceito PIX, transferência bancária e boleto. Para projetos acima de R$ 5.000, é possível parcelar o pagamento.' },
+                { id: '3', question: 'Quantas alterações posso pedir?', answer: 'Estão inclusas até 2 rodadas de revisões por projeto. Alterações adicionais são cobradas separadamente, com valor acordado previamente.' },
+                { id: '4', question: 'Qual formato de arquivo eu recebo?', answer: 'Vídeos em MP4 (H.264/H.265), fotos em JPEG + RAW, ilustrações em PNG + PSD, e modelagens 3D em FBX + OBJ. Formatos adicionais sob demanda.' },
+                { id: '5', question: 'Você trabalha com contrato?', answer: 'Sim. Todo projeto acima de R$ 500 é formalizado com um contrato digital. Confira a seção "Termos e Contrato" para mais detalhes.' }
+            ],
+            terms: {
+                scope: 'O trabalho contratado se limita estritamente aos itens selecionados e acordados no orçamento aprovado via Builder Pro ou proposta formalizada. Qualquer adição fora do escopo original será tratada como um novo serviço.',
+                copyright: 'Após o pagamento total do projeto, o cliente detém os direitos de uso comercial da obra. O PRISMA SYNC Studio mantém o direito irrevogável de exibição em portfólio profissional e redes sociais, salvo acordo expresso.',
+                cancellation: 'Em caso de desistência antes do início da produção, o sinal é devolvido integralmente em até 7 dias úteis. Após o início da produção, o sinal é não-reembolsável, pois cobre planejamento e pré-produção já investidos.',
+                delivery: 'Os prazos começam a contar a partir da confirmação do pagamento do sinal e do envio de todos os materiais pelo cliente. Atrasos causados por demora do cliente não são de responsabilidade do estúdio.',
+                warranty: 'Todos os projetos incluem 30 dias de garantia contra erros técnicos após a entrega final. Alterações estéticas após a aprovação final não estão cobertas pela garantia.'
+            }
+        };
+
+        const AppContext = createContext();
+
+        function AppProvider({ children }) {
+            const [view, setView] = useState('home');
+
+            const [isAuthenticated, setIsAuthenticated] = useState(() => {
+                return localStorage.getItem('nexusAuthToken_v6') === 'true';
+            });
+
+            const [items, setItemsRaw] = useState(() => {
+                const saved = localStorage.getItem('nexusPortfolioItems_v6');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        return parsed.map(item => ({ ...item, isHighlight: item.isHighlight || false, mediaType: item.mediaType || 'image' }));
+                    } catch(e) { return initialItems; }
+                }
+                return initialItems;
+            });
+
+            const [mediaReady, setMediaReady] = useState(false);
+
+            // Wrap setItems to also persist to IndexedDB-aware localStorage
+            const setItems = (newItemsOrFn) => {
+                setItemsRaw(prev => {
+                    const next = typeof newItemsOrFn === 'function' ? newItemsOrFn(prev) : newItemsOrFn;
+                    return next;
+                });
+            };
+
+            // On mount: restore blob URLs from IndexedDB for locally-stored media
+            useEffect(() => {
+                const restoreMedia = async () => {
+                    try {
+                        const restored = await Promise.all(items.map(async (item) => {
+                            if (item.isLocal) {
+                                try {
+                                    const blob = await MediaDB.load(item.id);
+                                    if (blob) {
+                                        return { ...item, url: URL.createObjectURL(blob) };
+                                    }
+                                } catch(e) { console.warn('Could not restore media for', item.id); }
+                            }
+                            return item;
+                        }));
+                        setItemsRaw(restored);
+                    } catch(e) { console.warn('Media restore failed:', e); }
+                    setMediaReady(true);
+                };
+                restoreMedia();
+            }, []);  // runs once on mount
+
+            const [config, setConfig] = useState(() => {
+                const saved = localStorage.getItem('nexusConfig_v6');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+
+                    if (!parsed.pricing) {
+                        parsed.pricing = defaultConfig.pricing;
+                    } else if (!parsed.pricing.builderItems || parsed.pricing.builderItems.length !== 13 || parsed.pricing.builderItems.some(i => i.name === 'Motion Graphics') || !parsed.pricing.builderItems[0].catId) {
+                        parsed.pricing.builderItems = defaultConfig.pricing.builderItems;
+                    }
+
+                    // Force rebrand migration
+                    if (parsed.siteName === 'William Art' || parsed.siteSuffix === '.STUDIO' && parsed.siteName !== 'PRISMA SYNC') {
+                        parsed.siteName = 'PRISMA SYNC';
+                        parsed.siteSuffix = '.STUDIO';
+                    }
+                    if (parsed.contact && parsed.contact.messageTemplate && parsed.contact.messageTemplate.includes('William Art')) {
+                        parsed.contact.messageTemplate = parsed.contact.messageTemplate.replace(/William Art\.?STUDIO/g, 'PRISMA SYNC.STUDIO');
+                    }
+                    if (parsed.terms && parsed.terms.copyright && parsed.terms.copyright.includes('William Art')) {
+                        parsed.terms.copyright = parsed.terms.copyright.replace(/William Art\.?STUDIO/g, 'PRISMA SYNC.STUDIO');
+                    }
+                    if (parsed.about && parsed.about.history && parsed.about.history.includes('William Silvestri')) {
+                        parsed.about.history = defaultConfig.about.history;
+                    }
+
+                    return {
+                        ...defaultConfig, ...parsed,
+                        about: parsed.about || defaultConfig.about,
+                        contact: parsed.contact || defaultConfig.contact,
+                        pricing: parsed.pricing,
+                        colors: parsed.colors || defaultConfig.colors,
+                        faq: parsed.faq || defaultConfig.faq,
+                        terms: parsed.terms || defaultConfig.terms,
+                        headerLogo: parsed.headerLogo || null
+                    };
+                }
+                return defaultConfig;
+            });
+
+            // Save items metadata to localStorage (without blob URLs)
+            useEffect(() => {
+                if (!mediaReady) return; // don't overwrite until media is restored
+                try {
+                    const metaItems = items.map(item => ({
+                        ...item,
+                        url: item.isLocal ? '' : item.url  // strip blob URLs, IndexedDB has the data
+                    }));
+                    localStorage.setItem('nexusPortfolioItems_v6', JSON.stringify(metaItems));
+                } catch (e) {
+                    console.warn('Could not save items to localStorage:', e);
+                }
+            }, [items, mediaReady]);
+            useEffect(() => {
+                try {
+                    localStorage.setItem('nexusConfig_v6', JSON.stringify(config));
+                } catch(e) {
+                    console.warn('Could not save config to localStorage:', e);
+                }
+            }, [config]);
+
+            useEffect(() => {
+                try {
+                    const newFaviconUrl = config.favicon || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🎨</text></svg>';
+                    const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+                    link.type = 'image/x-icon';
+                    link.rel = 'shortcut icon';
+                    link.href = newFaviconUrl;
+                    document.getElementsByTagName('head')[0].appendChild(link);
+                } catch (err) {
+                    console.warn('Favicon override ignored due to error:', err);
+                }
+            }, [config.favicon]);
+
+            const handleLogin = (username, password) => {
+                if (username === 'wsilvestri' && password === 'Nexus@Will2026') {
+                    setIsAuthenticated(true);
+                    localStorage.setItem('nexusAuthToken_v6', 'true');
+                    setView('admin');
+                } else {
+                    alert('Usuário ou senha incorretos!');
+                }
+            };
+
+            const handleLogout = () => {
+                setIsAuthenticated(false);
+                localStorage.removeItem('nexusAuthToken_v6');
+                setView('home');
+            };
+
+            return (
+                <AppContext.Provider value={{ items, setItems, config, setConfig, view, setView, isAuthenticated, handleLogin, handleLogout }}>
+                    {children}
+                </AppContext.Provider>
+            );
+        }
+
+        function BackgroundEffects() {
+            return (
+                <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                    <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: `linear-gradient(rgb(var(--color-primary)) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--color-primary)) 1px, transparent 1px)`, backgroundSize: '40px 40px', maskImage: 'radial-gradient(ellipse at center, black 10%, transparent 80%)', WebkitMaskImage: 'radial-gradient(ellipse at center, black 10%, transparent 80%)' }}></div>
+                    <motion.div animate={{ scale: [1, 1.05, 1], opacity: [0.15, 0.25, 0.15], rotate: [0, 45, 0] }} transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] min-w-[500px] min-h-[500px] rounded-full blur-[120px] mix-blend-screen" style={{ background: 'radial-gradient(circle, rgb(var(--color-primary)) 0%, transparent 70%)' }} />
+                    <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15], x: [0, -30, 0], y: [0, 30, 0] }} transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] min-w-[400px] min-h-[400px] rounded-full blur-[100px] mix-blend-screen" style={{ background: 'radial-gradient(circle, rgb(var(--color-secondary)) 0%, transparent 70%)' }} />
+                </div>
+            );
+        }
+
+        function AppContent() {
+            const { config, view, setView, isAuthenticated, handleLogout } = useContext(AppContext);
+
+            return (
+                <div className="min-h-screen relative bg-deep text-[#f5f5f7] overflow-hidden">
+                    <style>
+                        {`:root { --color-primary: ${hexToRgbStr(config.colors.primary)}; --color-secondary: ${hexToRgbStr(config.colors.secondary)}; --color-tertiary: ${hexToRgbStr(config.colors.tertiary)}; }`}
+                    </style>
+
+                    {config.bgType === 'image' && config.bgImage ? (
+                        <div
+                            className="fixed top-0 left-0 z-0"
+                            style={{
+                                backgroundImage: `url(${config.bgImage})`,
+                                backgroundColor: '#08080c',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                backgroundRepeat: 'no-repeat',
+                                width: '100vw',
+                                height: '100vh'
+                            }}
+                        >
+                            <div className="absolute inset-0 bg-black/75 backdrop-blur-sm"></div>
+                        </div>
+                    ) : (
+                        <BackgroundEffects />
+                    )}
+
+                    <nav className="fixed top-0 w-full z-50 p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4 glass-nav">
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 relative z-10 cursor-pointer" onClick={() => setView('home')}>
+                            {config.headerLogo && <img src={config.headerLogo} alt="Logo" className="w-8 h-8 md:w-9 md:h-9 object-contain rounded-lg" />}
+                            <div className="text-xl md:text-2xl font-bold tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+                                <span className="text-[#f5f5f7] font-extrabold" style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: '-0.02em' }}>{config.siteName}</span>
+                                <span className="ml-1.5 inline-block font-bold" style={{ background: 'linear-gradient(135deg, #00f7ff, #ff00ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{config.siteSuffix}</span>
+                            </div>
+                        </motion.div>
+
+                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-2 bg-white/5 rounded-full p-1 overflow-x-auto max-w-full border border-white/10 relative z-10">
+                            <NavButton currentView={view} viewName="home" icon={<Home size={16} />} label="Home" setView={setView} colorClass="text-primary" />
+                            <NavButton currentView={view} viewName="about" icon={<User size={16} />} label="Sobre" setView={setView} colorClass="text-secondary" />
+                            <NavButton currentView={view} viewName="contact" icon={<MessageCircle size={16} />} label="Contatos" setView={setView} colorClass="text-tertiary" />
+                            <NavButton currentView={view} viewName="pricing" icon={<Tag size={16} />} label="Investimento" setView={setView} colorClass="text-[#34c759]" />
+
+                            {isAuthenticated ? (
+                                <>
+                                    <NavButton currentView={view} viewName="admin" icon={<LayoutDashboard size={16} />} label="Admin" setView={setView} colorClass="text-white" />
+                                    <button onClick={handleLogout} className="px-4 py-2 rounded-full transition-all flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-red-400 whitespace-nowrap"><LogOut size={16} /></button>
+                                </>
+                            ) : (
+                                <NavButton currentView={view} viewName="login" icon={<Lock size={16} />} label="Login" setView={setView} colorClass="text-gray-400" />
+                            )}
+                        </motion.div>
+                    </nav>
+
+                    <main className={`pt-36 md:pt-32 pb-24 mx-auto relative z-10 transition-all duration-500 ${view === 'builder' ? 'max-w-[98vw] w-full px-2 md:px-4' : 'max-w-6xl px-6 md:px-12'}`}>
+                        <AnimatePresence mode="wait">
+                            {view === 'home' && <LandingPage key="home" />}
+                            {view === 'about' && <AboutPage key="about" />}
+                            {view === 'contact' && <ContactPage key="contact" />}
+                            {view === 'pricing' && <PricingPage key="pricing" />}
+                            {view === 'faq' && <FaqPage key="faq" />}
+                            {view === 'terms' && <TermsPage key="terms" />}
+                            {view === 'login' && <LoginPage key="login" />}
+                            {view === 'admin' && isAuthenticated && <AdminDashboard key="admin" />}
+                            {view === 'builder' && <CustomBuilderModal key="builder" />}
+                        </AnimatePresence>
+                    </main>
+                </div>
+            );
+        }
+
+        function NavButton({ currentView, viewName, icon, label, setView, colorClass }) {
+            const isActive = currentView === viewName;
+            return (
+                <button onClick={() => setView(viewName)} className={`px-5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 text-sm font-medium whitespace-nowrap ${isActive ? `bg-white/10 shadow-sm ${colorClass}` : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+                    {icon} <span>{label}</span>
+                </button>
+            );
+        }
+
+        function EditableText({ value, objectKey, isEditingGlobal, multiline = false, className = "", inputClassName = "" }) {
+            const { setConfig } = useContext(AppContext);
+            const [isEditing, setIsEditing] = useState(false);
+            const [tempValue, setTempValue] = useState(value);
+
+            useEffect(() => { setTempValue(value); }, [value]);
+
+            const handleSave = () => {
+                if (objectKey.includes('.')) {
+                    const [parent, child] = objectKey.split('.');
+                    setConfig(prev => ({ ...prev, [parent]: { ...prev[parent], [child]: tempValue } }));
+                } else {
+                    setConfig(prev => ({ ...prev, [objectKey]: tempValue }));
+                }
+                setIsEditing(false);
+            };
+
+            if (!isEditingGlobal) return <span className={className}>{value}</span>;
+
+            if (isEditing) {
+                return (
+                    <div className="flex flex-col items-start gap-2 w-full my-2">
+                        {multiline ? (
+                            <textarea value={tempValue} onChange={e => setTempValue(e.target.value)} className={`bg-[#1c1c1e] border border-white/20 rounded-xl p-4 text-white w-full shadow-lg outline-none focus:border-primary transition-all ${inputClassName}`} autoFocus rows={6} />
+                        ) : (
+                            <input value={tempValue} onChange={e => setTempValue(e.target.value)} className={`bg-[#1c1c1e] border border-white/20 rounded-xl p-3 text-white w-full shadow-lg outline-none focus:border-primary transition-all text-center ${inputClassName}`} autoFocus />
+                        )}
+                        <div className="flex gap-2 self-end">
+                            <button onClick={handleSave} className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm font-medium hover:bg-green-500/30">Salvar</button>
+                            <button onClick={() => { setTempValue(value); setIsEditing(false); }} className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/30">Cancelar</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <span className={`${className} cursor-pointer hover:bg-white/5 px-1 -mx-1 rounded transition-colors relative group inline-block`} onClick={() => setIsEditing(true)} title="Clique para editar">
+                    {value}
+                    <Edit3 size={14} className="absolute -top-3 -right-3 opacity-0 group-hover:opacity-100 text-gray-400 transition-opacity" />
+                </span>
+            );
+        }
+
+        function PricingPromos() {
+            const { config, setConfig, isAuthenticated, setView } = useContext(AppContext);
+            const pricing = config.pricing;
+
+            return (
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                    <div className="glass p-8 rounded-[2rem] flex flex-col items-center text-center subtle-neon-hover-tertiary">
+                        <Star className="text-gray-400 mb-4" size={32} />
+                        <EditableText value={pricing.promotions.single.title} objectKey="pricing.promotions.single.title" isEditingGlobal={isAuthenticated} className="text-2xl font-bold text-white mb-2" />
+                        <EditableText value={pricing.promotions.single.description} objectKey="pricing.promotions.single.description" isEditingGlobal={isAuthenticated} className="text-gray-400 text-sm" />
+                        <button onClick={() => setView('builder')} className="mt-6 px-6 py-2 rounded-full border border-white/20 text-white text-sm hover:bg-white/10 transition-colors">Solicitar Orçamento</button>
+                    </div>
+                    <div className="glass p-8 rounded-[2rem] flex flex-col items-center text-center subtle-neon-hover-primary relative overflow-hidden border-primary/30 shadow-[0_0_20px_rgba(var(--color-primary),0.15)]">
+                        <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-4 py-1.5 rounded-bl-xl tracking-wider uppercase">
+                            <EditableText value={pricing.promotions.promo.badge} objectKey="pricing.promotions.promo.badge" isEditingGlobal={isAuthenticated} />
+                        </div>
+                        <Tag className="text-primary mb-4" size={32} />
+                        <EditableText value={pricing.promotions.promo.title} objectKey="pricing.promotions.promo.title" isEditingGlobal={isAuthenticated} className="text-2xl font-bold text-white mb-2" />
+                        <EditableText value={pricing.promotions.promo.description} objectKey="pricing.promotions.promo.description" isEditingGlobal={isAuthenticated} className="text-gray-300 text-sm" />
+                        <a href={`https://wa.me/${config.contact.whatsapp}?text=${encodeURIComponent(`Olá! Vi no PRISMA SYNC.STUDIO e gostaria de aproveitar a oferta especial: *${pricing.promotions.promo.title}*.`)}`} target="_blank" rel="noreferrer" className="mt-6 px-6 py-2 rounded-full bg-white text-black font-bold text-sm hover:bg-gray-200 transition-colors inline-block">Aproveitar Oferta</a>
+                    </div>
+                </section>
+            );
+        }
+
+        function HighlightsCarousel({ onSelect }) {
+            const { items } = useContext(AppContext);
+            const highlights = items.filter(i => i.isHighlight);
+            const swiperContainerRef = React.useRef(null);
+            const swiperInstance = React.useRef(null);
+            const [activeIndex, setActiveIndex] = useState(0);
+
+            useEffect(() => {
+                if (typeof window.Swiper === 'undefined' || highlights.length === 0) return;
+
+                if (swiperContainerRef.current && !swiperInstance.current) {
+                    swiperInstance.current = new window.Swiper(swiperContainerRef.current, {
+                        effect: 'coverflow',
+                        grabCursor: true,
+                        centeredSlides: true,
+                        slidesPerView: 'auto',
+                        loop: highlights.length > 1,
+                        autoplay: {
+                            delay: 4000,
+                            disableOnInteraction: false,
+                            pauseOnMouseEnter: true
+                        },
+                        coverflowEffect: {
+                            rotate: 0,
+                            stretch: 0,
+                            depth: 100,
+                            modifier: 2.5,
+                            slideShadows: false,
+                        },
+                        navigation: {
+                            nextEl: '.swiper-button-next-custom',
+                            prevEl: '.swiper-button-prev-custom',
+                        },
+                        on: {
+                            slideChange: (s) => {
+                                setActiveIndex(s.realIndex);
+                            },
+                            click: (s) => {
+                                if (s.clickedSlide) {
+                                    // The data-id attribute can be added to the slide to identify it
+                                    const index = s.clickedIndex;
+                                    const realIndex = s.realIndex;
+                                    if (onSelect && highlights[realIndex]) {
+                                        onSelect(highlights[realIndex]);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                return () => {
+                    if (swiperInstance.current) {
+                        swiperInstance.current.destroy();
+                        swiperInstance.current = null;
+                    }
+                };
+            }, [highlights.length]);
+
+            if (highlights.length === 0) return null;
+
+            return (
+                <section className="w-full relative group -my-10 overflow-hidden">
+                    <div ref={swiperContainerRef} className="swiper highlights-swiper !py-20">
+                        <div className="swiper-wrapper">
+                            {highlights.map((item, idx) => {
+                                const metaKey = getMetaKey(item.category);
+                                const meta = disciplineMeta[metaKey] || { color: '#ffffff', hex: '255, 255, 255', name: 'Geral' };
+                                const isActive = activeIndex === idx;
+                                return (
+                                    <div key={item.id} className="swiper-slide !w-[320px] md:!w-[600px] aspect-video">
+                                        <div 
+                                            className={`relative block w-full h-full rounded-[24px] overflow-hidden transition-all duration-700 border-2 cursor-pointer ${isActive ? 'scale-105 shadow-2xl z-10' : 'scale-90 opacity-30 blur-[2px] z-0'}`}
+                                            onClick={() => onSelect && onSelect(item)}
+                                            style={{ 
+                                                borderColor: isActive ? meta.color : 'rgba(255,255,255,0.05)',
+                                                boxShadow: isActive ? `0 0 50px rgba(${meta.hex}, 0.4)` : 'none'
+                                            }}
+                                        >
+                                            <MediaThumbnail src={item.url} mediaType={item.mediaType} alt={item.title} className="w-full h-full object-cover" autoPlay={isActive} />
+                                            {isActive && (
+                                                <div className="absolute inset-x-0 bottom-0 p-8 bg-black/60 backdrop-blur-xl border-t border-white/10">
+                                                    <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] mb-2" style={{ color: meta.color }}>{meta.name}</p>
+                                                    <h3 className="text-2xl font-bold text-white tracking-tight">{item.title}</h3>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="swiper-button-prev-custom absolute left-4 md:left-20 top-1/2 -translate-y-1/2 z-50 p-4 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-black">
+                            <ChevronLeft size={24} />
+                        </div>
+                        <div className="swiper-button-next-custom absolute right-4 md:right-20 top-1/2 -translate-y-1/2 z-50 p-4 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-black">
+                            <ChevronRight size={24} />
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function LandingPage() {
+            const { items, config, isAuthenticated, setView } = useContext(AppContext);
+
+            const categories = [
+                { id: 'Edição de Vídeo', icon: <Video size={28} />, catId: 'video', delay: 0.1 },
+                { id: 'Fotografia', icon: <Camera size={28} />, catId: 'photo', delay: 0.2 },
+                { id: 'Ilustração', icon: <PenTool size={28} />, catId: 'ilustra', delay: 0.3 },
+                { id: 'Modelagem 3D', icon: <Box size={28} />, catId: '3d', delay: 0.4 },
+            ];
+            const [activeCategory, setActiveCategory] = useState(null);
+            const [viewerItem, setViewerItem] = useState(null);
+
+            return (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-32">
+                    <section className="text-center mt-10 md:mt-24 relative z-10">
+                        <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1, duration: 0.8 }} className="text-6xl md:text-8xl font-bold mb-6 tracking-tighter metallic-text flex flex-col items-center leading-normal relative z-10 drop-shadow-2xl">
+                            <EditableText value={config.heroTitle1} objectKey="heroTitle1" isEditingGlobal={isAuthenticated} className="block" />
+                            <EditableText value={config.heroTitle2} objectKey="heroTitle2" isEditingGlobal={isAuthenticated} className="block" />
+                        </motion.h1>
+                        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2, duration: 0.8 }} className="relative z-10 text-white text-xl md:text-2xl max-w-3xl mx-auto mb-12 font-normal tracking-wide leading-relaxed p-6 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
+                            <EditableText value={config.bio} objectKey="bio" isEditingGlobal={isAuthenticated} multiline={true} />
+                        </motion.div>
+                        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.8 }} className="flex flex-col sm:flex-row justify-center items-center gap-6">
+                            <button className="px-8 py-4 rounded-full bg-white text-black hover:bg-gray-200 transition-colors font-semibold tracking-wide text-lg cursor-pointer">Explorar Projetos</button>
+                            <button onClick={() => setView('contact')} className="px-8 py-4 rounded-full bg-[#1c1c1e] text-white hover:bg-[#2c2c2e] transition-colors font-semibold tracking-wide text-lg border border-white/5 cursor-pointer">Fale Comigo</button>
+                        </motion.div>
+                    </section>
+
+                    <HighlightsCarousel onSelect={setViewerItem} />
+
+                    <section className="max-w-4xl mx-auto w-full mb-12">
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-12 tracking-tighter text-center uppercase" style={{ background: 'linear-gradient(135deg, #00f7ff 0%, #ff00ff 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Ofertas Estratégicas.</h2>
+                        <PricingPromos />
+                    </section>
+
+                    <section>
+                        <h2 className="text-3xl font-bold mb-10 text-white tracking-tight">Especialidades.</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {categories.map((cat) => {
+                                const meta = disciplineMeta[cat.catId] || { color: '#ffffff', hex: '255,255,255' };
+                                return (
+                                    <motion.div key={cat.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: cat.delay }}
+                                        onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
+                                        whileHover={{ boxShadow: `0 0 30px rgba(${meta.hex}, 0.15)`, borderColor: `rgba(${meta.hex}, 0.3)`, backgroundColor: 'rgba(255,255,255,0.02)' }}
+                                        className={`glass p-8 rounded-3xl cursor-pointer transition-all duration-500 border border-white/5 ${activeCategory === cat.id ? `scale-[1.02] bg-white/5 shadow-[0_0_30px_rgba(${meta.hex},0.2)] border-[${meta.color}]` : ``}`}
+                                    >
+                                        <div className="flex flex-col items-start gap-6">
+                                            <div className="p-4 rounded-2xl" style={{ backgroundColor: `rgba(${meta.hex}, 0.1)`, color: meta.color, filter: `drop-shadow(0 0 8px rgba(${meta.hex}, 0.5))` }}>{cat.icon}</div>
+                                            <div><h3 className="text-xl font-semibold text-white tracking-tight">{cat.id}</h3><p className="text-[#86868b] text-sm mt-1">Ver projetos</p></div>
+                                        </div>
+                                    </motion.div>
+                                )
+                            })}
+                        </div>
+                    </section>
+
+                    <section className="pb-10">
+                        <h2 className="text-3xl font-bold mb-10 text-white tracking-tight">Trabalhos Recentes.</h2>
+                        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <AnimatePresence>
+                                {items.filter(item => activeCategory ? item.category === activeCategory : true).map((item) => {
+                                    const metaKey = getMetaKey(item.category);
+                                    const meta = disciplineMeta[metaKey] || { color: '#ffffff', hex: '255,255,255' };
+                                    return (
+                                        <motion.div layout key={item.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.4 }}
+                                            className="glass rounded-3xl overflow-hidden group cursor-pointer hover:border-white/20 transition-all duration-500 hover:shadow-2xl hover:shadow-white/5"
+                                            onClick={() => setViewerItem(item)}
+                                        >
+                                            <div className="h-64 overflow-hidden relative bg-[#1c1c1e]">
+                                                <MediaThumbnail src={item.url} mediaType={item.mediaType} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                                                <div className="absolute top-4 left-4"><span className="text-xs font-semibold px-4 py-1.5 rounded-full bg-black/40 backdrop-blur-xl text-[#f5f5f7] border border-white/10 uppercase tracking-wider">{item.category}</span></div>
+                                                {item.mediaType === 'video' && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                            <Play size={28} className="text-white ml-1" fill="white" />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="p-8">
+                                                <h4 className="text-2xl font-bold text-white group-hover:text-primary transition-colors tracking-tight flex items-center gap-3">
+                                                    {item.title}
+                                                    {item.isHighlight && <Crown size={16} className="text-yellow-500 fill-yellow-500 shrink-0" />}
+                                                </h4>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </AnimatePresence>
+                        </motion.div>
+                    </section>
+
+                    {/* Footer: FAQ, Terms & Social */}
+                    <section className="pb-16 flex flex-col items-center gap-10">
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                            <motion.button
+                                onClick={() => setView('faq')}
+                                whileHover={{ boxShadow: '0 0 25px rgba(0, 247, 255, 0.25), 0 0 60px rgba(255, 0, 255, 0.1)', borderColor: 'rgba(0, 247, 255, 0.5)' }}
+                                className="glass px-8 py-4 rounded-2xl flex items-center gap-3 text-white font-semibold border border-white/10 cursor-pointer transition-all duration-500 hover:bg-white/5"
+                            >
+                                <HelpCircle size={20} className="text-[#00f7ff]" /> Dúvidas Frequentes (FAQ)
+                            </motion.button>
+                            <motion.button
+                                onClick={() => setView('terms')}
+                                whileHover={{ boxShadow: '0 0 25px rgba(255, 0, 255, 0.25), 0 0 60px rgba(0, 247, 255, 0.1)', borderColor: 'rgba(255, 0, 255, 0.5)' }}
+                                className="glass px-8 py-4 rounded-2xl flex items-center gap-3 text-white font-semibold border border-white/10 cursor-pointer transition-all duration-500 hover:bg-white/5"
+                            >
+                                <FileText size={20} className="text-[#ff00ff]" /> Termos e Contrato
+                            </motion.button>
+                        </div>
+                        <div className="flex items-center gap-6 text-[#86868b]">
+                            <a href={`https://instagram.com/${config.contact.instagram}`} target="_blank" rel="noreferrer" className="hover:text-white transition-colors"><Instagram size={22} /></a>
+                            <a href={`https://wa.me/${config.contact.whatsapp}`} target="_blank" rel="noreferrer" className="hover:text-white transition-colors"><MessageCircle size={22} /></a>
+                        </div>
+                        <p className="text-[#48484a] text-xs tracking-wider">© {new Date().getFullYear()} {config.siteName}{config.siteSuffix}. Todos os direitos reservados.</p>
+                    </section>
+
+                    {/* Immersive Viewer Modal */}
+                    <AnimatePresence>
+                        {viewerItem && <ImmersiveViewer item={viewerItem} onClose={() => setViewerItem(null)} />}
+                    </AnimatePresence>
+                </motion.div>
+            );
+        }
+
+        // === FAQ Page (Interactive Accordion) ===
+        function FaqPage() {
+            const { config, setConfig, isAuthenticated } = useContext(AppContext);
+            const faq = config.faq || [];
+            const [openId, setOpenId] = useState(null);
+
+            const updateFaq = (id, field, value) => {
+                setConfig(p => ({ ...p, faq: p.faq.map(q => q.id === id ? { ...q, [field]: value } : q) }));
+            };
+            const addFaq = () => {
+                const newQ = { id: Date.now().toString(), question: 'Nova pergunta?', answer: 'Escreva a resposta aqui.' };
+                setConfig(p => ({ ...p, faq: [...(p.faq || []), newQ] }));
+            };
+            const removeFaq = (id) => {
+                setConfig(p => ({ ...p, faq: p.faq.filter(q => q.id !== id) }));
+            };
+
+            return (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-3xl mx-auto mt-8 relative z-10">
+                    <div className="text-center mb-16">
+                        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="inline-flex p-4 rounded-2xl bg-[#00f7ff]/10 mb-6">
+                            <HelpCircle size={36} className="text-[#00f7ff]" />
+                        </motion.div>
+                        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">Dúvidas Frequentes</h1>
+                        <p className="text-[#86868b] text-lg">Respostas rápidas para as perguntas mais comuns.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                        {faq.map((item, idx) => {
+                            const isOpen = openId === item.id;
+                            return (
+                                <motion.div key={item.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}
+                                    className="glass rounded-2xl overflow-hidden border border-white/5 hover:border-white/15 transition-all"
+                                >
+                                    <button
+                                        onClick={() => setOpenId(isOpen ? null : item.id)}
+                                        className="w-full flex items-center justify-between px-8 py-6 text-left cursor-pointer group"
+                                    >
+                                        {isAuthenticated ? (
+                                            <input value={item.question} onChange={(e) => updateFaq(item.id, 'question', e.target.value)}
+                                                className="bg-transparent text-white font-semibold text-lg tracking-tight outline-none flex-1 mr-4 focus:border-b focus:border-primary"
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        ) : (
+                                            <span className="text-white font-semibold text-lg tracking-tight">{item.question}</span>
+                                        )}
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {isAuthenticated && (
+                                                <button onClick={(e) => { e.stopPropagation(); removeFaq(item.id); }} className="p-1 text-gray-500 hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
+                                            )}
+                                            <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.3 }}>
+                                                <ChevronDown size={20} className="text-[#86868b] group-hover:text-white transition-colors" />
+                                            </motion.div>
+                                        </div>
+                                    </button>
+                                    <AnimatePresence>
+                                        {isOpen && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="px-8 pb-6 border-t border-white/5 pt-4">
+                                                    {isAuthenticated ? (
+                                                        <textarea value={item.answer} onChange={(e) => updateFaq(item.id, 'answer', e.target.value)}
+                                                            className="w-full bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-[#c7c7cc] text-base leading-relaxed outline-none focus:border-primary min-h-[100px] resize-y"
+                                                        />
+                                                    ) : (
+                                                        <p className="text-[#c7c7cc] text-base leading-relaxed">{item.answer}</p>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+
+                    {isAuthenticated && (
+                        <motion.button onClick={addFaq} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                            className="mt-8 w-full py-4 rounded-2xl border-2 border-dashed border-white/10 text-[#86868b] hover:text-white hover:border-white/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            <Plus size={20} /> Adicionar Pergunta
+                        </motion.button>
+                    )}
+                </motion.div>
+            );
+        }
+
+        // === Terms & Contract Page ===
+        function TermsPage() {
+            const { config, setConfig, isAuthenticated } = useContext(AppContext);
+            const terms = config.terms || {};
+
+            const updateTerm = (key, value) => {
+                setConfig(p => ({ ...p, terms: { ...p.terms, [key]: value } }));
+            };
+
+            const sections = [
+                { key: 'scope', icon: <Briefcase size={22} />, title: 'Escopo do Trabalho', color: '#00f7ff', hex: '0, 247, 255' },
+                { key: 'copyright', icon: <Crown size={22} />, title: 'Direitos Autorais', color: '#ff00ff', hex: '255, 0, 255' },
+                { key: 'cancellation', icon: <X size={22} />, title: 'Política de Cancelamento', color: '#7000ff', hex: '112, 0, 255' },
+                { key: 'delivery', icon: <CheckCircle size={22} />, title: 'Prazos e Entrega', color: '#ccff00', hex: '204, 255, 0' },
+                { key: 'warranty', icon: <Star size={22} />, title: 'Garantia', color: '#34c759', hex: '52, 199, 89' }
+            ];
+
+            return (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-3xl mx-auto mt-8 relative z-10">
+                    <div className="text-center mb-16">
+                        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="inline-flex p-4 rounded-2xl bg-[#ff00ff]/10 mb-6">
+                            <FileText size={36} className="text-[#ff00ff]" />
+                        </motion.div>
+                        <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">Diretrizes de Trabalho</h1>
+                        <p className="text-[#86868b] text-lg">Transparência total. Leia os termos antes de iniciar seu projeto.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-6">
+                        {sections.map((section, idx) => (
+                            <motion.div key={section.key} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }}
+                                className="glass rounded-3xl p-8 border border-white/5 hover:border-white/15 transition-all"
+                                style={{ boxShadow: `0 4px 20px rgba(${section.hex}, 0.05)` }}
+                            >
+                                <div className="flex items-center gap-4 mb-5">
+                                    <div className="p-3 rounded-xl" style={{ backgroundColor: `rgba(${section.hex}, 0.1)`, color: section.color }}>
+                                        {section.icon}
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white tracking-tight">{section.title}</h3>
+                                </div>
+                                {isAuthenticated ? (
+                                    <textarea value={terms[section.key] || ''} onChange={(e) => updateTerm(section.key, e.target.value)}
+                                        className="w-full bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-[#c7c7cc] text-base leading-relaxed outline-none focus:border-primary min-h-[120px] resize-y font-light"
+                                    />
+                                ) : (
+                                    <p className="text-[#c7c7cc] text-base leading-relaxed font-light whitespace-pre-wrap">{terms[section.key]}</p>
+                                )}
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="text-center mt-12 pb-8">
+                        <p className="text-[#48484a] text-sm">Última atualização: {new Date().toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        function AboutPage() {
+            const { config, setConfig, isAuthenticated } = useContext(AppContext);
+            const about = config.about;
+
+            const updateAbout = (key, val) => setConfig(p => ({ ...p, about: { ...p.about, [key]: val } }));
+
+            const handlePicUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader(); reader.onload = (e) => updateAbout('profilePic', e.target.result); reader.readAsDataURL(file);
+                }
+            };
+
+            const [newSkill, setNewSkill] = useState('');
+            const addSkill = () => { if (newSkill) { updateAbout('skills', [...about.skills, newSkill]); setNewSkill(''); } };
+            const removeSkill = (sk) => updateAbout('skills', about.skills.filter(s => s !== sk));
+
+            const addExp = () => {
+                const exp = { id: Date.now().toString(), role: 'Novo Cargo', company: 'Nova Empresa', period: '2024 — Presente', description: 'Descreva suas atividades de forma limpa e objetiva.' };
+                updateAbout('experiences', [exp, ...about.experiences]);
+            };
+            const removeExp = (id) => updateAbout('experiences', about.experiences.filter(e => e.id !== id));
+            const updateExp = (id, field, value) => updateAbout('experiences', about.experiences.map(e => e.id === id ? { ...e, [field]: value } : e));
+
+            return (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-24 mt-8 relative z-10">
+                    <section className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                        <div className="lg:col-span-5 relative group">
+                            <div className="rounded-[2.5rem] p-2 bg-gradient-to-b from-white/10 to-transparent relative overflow-hidden subtle-neon-hover-primary">
+                                <img src={about.profilePic} alt="Profile" className="w-full aspect-[4/5] object-cover rounded-[2rem]" />
+                                {isAuthenticated && (
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-[2rem] m-2" onClick={() => document.getElementById('profile-upload').click()}>
+                                        <span className="text-white flex items-center gap-2 bg-black/60 px-6 py-3 rounded-full border border-white/20 font-medium"><Upload size={18} /> Mudar Foto</span>
+                                        <input type="file" id="profile-upload" className="hidden" accept="image/*" onChange={handlePicUpload} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="lg:col-span-7 flex flex-col justify-center">
+                            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-white tracking-tight metallic-text leading-normal">Sobre Mim.</h2>
+                            <EditableText value={about.history} objectKey="about.history" isEditingGlobal={isAuthenticated} multiline={true} className="text-[#86868b] text-xl leading-relaxed whitespace-pre-wrap font-light" inputClassName="min-h-[250px] text-lg" />
+                        </div>
+                    </section>
+
+                    <section>
+                        <h2 className="text-3xl font-bold mb-10 text-white tracking-tight">Expertise.</h2>
+                        <div className="flex flex-wrap gap-4">
+                            <AnimatePresence>
+                                {about.skills.map((skill) => (
+                                    <motion.div key={skill} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="glass px-6 py-3 rounded-full text-base font-medium flex items-center gap-2 hover:bg-white/10 transition-all cursor-default subtle-neon-hover-primary">
+                                        {skill}
+                                        {isAuthenticated && <button onClick={() => removeSkill(skill)} className="text-gray-500 hover:text-red-400 ml-2 transition-colors"><X size={16} /></button>}
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        </div>
+                        {isAuthenticated && (
+                            <div className="mt-8 flex gap-3 max-w-sm">
+                                <input value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={e => e.key === 'Enter' && addSkill()} placeholder="Nova habilidade..." className="bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-sm flex-1 text-white outline-none focus:border-primary" />
+                                <button onClick={addSkill} className="bg-white text-black px-6 py-3 rounded-xl text-sm font-bold hover:bg-gray-200 transition-colors">Add</button>
+                            </div>
+                        )}
+                    </section>
+
+                    <section className="mb-10">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-4">
+                            <h2 className="text-3xl font-bold text-white tracking-tight">Trajetória.</h2>
+                            {isAuthenticated && <button onClick={addExp} className="bg-[#1c1c1e] text-white px-6 py-3 rounded-full text-sm font-medium border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2"><Plus size={18} /> Nova Experiência</button>}
+                        </div>
+                        <div className="flex flex-col gap-0">
+                            <AnimatePresence>
+                                {about.experiences.map((exp) => (
+                                    <motion.div key={exp.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="flex flex-col md:flex-row gap-4 md:gap-12 border-t border-white/10 py-10 group">
+                                        <div className="w-full md:w-1/4 shrink-0 pt-1">
+                                            {isAuthenticated ? <input value={exp.period} onChange={e => updateExp(exp.id, 'period', e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-lg p-2 text-sm text-gray-400 w-full outline-none focus:border-primary" placeholder="Período" /> : <time className="text-base text-[#86868b] font-medium tracking-wide">{exp.period}</time>}
+                                            {isAuthenticated && <button onClick={() => removeExp(exp.id)} className="text-red-400 hover:bg-red-400/10 p-2 rounded-lg text-sm flex items-center gap-2 mt-4 transition-colors"><Trash2 size={16} /> Excluir</button>}
+                                        </div>
+                                        <div className="w-full md:w-3/4 flex flex-col gap-2">
+                                            {isAuthenticated ? (
+                                                <>
+                                                    <input value={exp.role} onChange={e => updateExp(exp.id, 'role', e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-lg p-3 text-white font-bold text-xl outline-none focus:border-primary" placeholder="Cargo" />
+                                                    <input value={exp.company} onChange={e => updateExp(exp.id, 'company', e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-lg p-3 text-primary font-medium outline-none focus:border-primary" placeholder="Empresa" />
+                                                    <textarea value={exp.description} onChange={e => updateExp(exp.id, 'description', e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-lg p-3 text-base text-gray-300 mt-2 outline-none focus:border-primary" placeholder="Descrição" rows={4}></textarea>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <h3 className="font-bold text-2xl text-white tracking-tight">{exp.role}</h3>
+                                                    <div className="font-medium text-primary text-lg mb-4">{exp.company}</div>
+                                                    <p className="text-[#86868b] text-lg leading-relaxed font-light">{exp.description}</p>
+                                                </>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        </div>
+                    </section>
+                </motion.div>
+            );
+        }
+
+        function ContactPage() {
+            const { config, isAuthenticated, setConfig } = useContext(AppContext);
+            const waLink = `https://wa.me/${config.contact.whatsapp}?text=${encodeURIComponent('Olá! Vim pelo PRISMA SYNC.STUDIO e gostaria de conversar!')}`;
+            const igLink = `https://instagram.com/${config.contact.instagram}`;
+
+            const updateContact = (key, val) => setConfig(p => ({ ...p, contact: { ...p.contact, [key]: val } }));
+
+            const highlightKeywords = (text) => {
+                if (!text) return null;
+                const parts = text.split(/(PJ|CLT|B2B)/g);
+                return parts.map((part, i) =>
+                    /(PJ|CLT|B2B)/.test(part) ? <strong key={i} className="text-primary drop-shadow-[0_0_8px_rgba(var(--color-primary),0.8)]">{part}</strong> : part
+                );
+            };
+
+            return (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="max-w-4xl mx-auto mt-16 md:mt-32 text-center pb-20 relative z-10">
+                    <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tighter metallic-text leading-normal">Vamos criar juntos.</h1>
+                    <p className="text-[#86868b] text-xl md:text-2xl mb-16 font-light max-w-2xl mx-auto">Selecione o canal de sua preferência. Retornarei o mais rápido possível.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <motion.a href={waLink} target="_blank" rel="noreferrer" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }} className="glass p-12 rounded-[2.5rem] subtle-neon-hover-primary group flex flex-col items-center gap-6 cursor-pointer bg-gradient-to-b from-white/5 to-transparent">
+                            <div className="w-24 h-24 bg-[#1c1c1e] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-xl border border-white/5"><MessageCircle size={40} className="text-white group-hover:text-primary transition-colors" /></div>
+                            <div><h3 className="text-3xl font-bold mb-2 tracking-tight text-white">WhatsApp</h3><p className="text-[#86868b] text-lg font-light">Conversa rápida e direta.</p></div>
+                        </motion.a>
+                        <motion.a href={igLink} target="_blank" rel="noreferrer" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }} className="glass p-12 rounded-[2.5rem] subtle-neon-hover-secondary group flex flex-col items-center gap-6 cursor-pointer bg-gradient-to-b from-white/5 to-transparent">
+                            <div className="w-24 h-24 bg-[#1c1c1e] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-xl border border-white/5"><Instagram size={40} className="text-white group-hover:text-secondary transition-colors" /></div>
+                            <div><h3 className="text-3xl font-bold mb-2 tracking-tight text-white">Instagram</h3><p className="text-[#86868b] text-lg font-light">Acompanhe meus trabalhos.</p></div>
+                        </motion.a>
+                    </div>
+
+                    <AnimatePresence>
+                        {config.contact.showAvailability && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ delay: 0.5, duration: 0.8 }}
+                                className="mt-12 p-6 md:p-8 rounded-3xl bg-black/40 backdrop-blur-[12px] border border-primary/20 flex flex-col md:flex-row items-center gap-6 max-w-3xl mx-auto shadow-[0_0_30px_rgba(var(--color-primary),0.05)] subtle-neon-hover-primary group text-left"
+                            >
+                                <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10 group-hover:bg-primary/10 transition-colors">
+                                    <Briefcase className="text-white group-hover:text-primary transition-colors" size={28} />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Disponibilidade para Projetos</h3>
+                                    {isAuthenticated ? (
+                                        <EditableText value={config.contact.availabilityText || 'Aberto a propostas para colaborações via PJ (B2B) ou contratações CLT. Vamos transformar sua ideia em realidade.'} objectKey="contact.availabilityText" isEditingGlobal={true} multiline={true} className="text-gray-400 text-base leading-relaxed" />
+                                    ) : (
+                                        <p className="text-gray-400 text-base leading-relaxed font-light">{highlightKeywords(config.contact.availabilityText || 'Aberto a propostas para colaborações via PJ (B2B) ou contratações CLT. Vamos transformar sua ideia em realidade.')}</p>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {isAuthenticated && (
+                        <div className="mt-24 p-8 glass rounded-3xl flex flex-col gap-6 max-w-lg mx-auto border-dashed border-2 border-white/20">
+                            <h4 className="font-bold text-xl text-white flex items-center gap-2 justify-center"><Settings size={20} /> Configs de Contato</h4>
+                            <div className="flex flex-col gap-2 text-left">
+                                <label className="text-sm text-gray-400 font-medium">WhatsApp (DDI + DDD + Número)</label>
+                                <input type="text" value={config.contact.whatsapp} onChange={e => updateContact('whatsapp', e.target.value)} className="bg-[#1c1c1e] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-primary" />
+                            </div>
+                            <div className="flex flex-col gap-2 text-left">
+                                <label className="text-sm text-gray-400 font-medium">Instagram (Sem @)</label>
+                                <input type="text" value={config.contact.instagram} onChange={e => updateContact('instagram', e.target.value)} className="bg-[#1c1c1e] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-secondary" />
+                            </div>
+
+                            <div className="flex flex-col gap-2 text-left">
+                                <label className="text-sm text-gray-400 font-medium">Template da Mensagem (WhatsApp)</label>
+                                <textarea value={config.contact.messageTemplate || 'NOVO PEDIDO DE ORÇAMENTO 🚀\n\n📦 Pacote: [NOME_DO_PACOTE]\n🛠️ Especialização: [TIPO_SERVICO]\n\n✨ Itens Inclusos:\n[LISTA_DE_BENEFICIOS_DO_PACOTE]\n\n💰 Resumo de Preço:\n[VALOR_DO_ORÇAMENTO]\n\nEnviado via PRISMA SYNC Studio'} onChange={e => updateContact('messageTemplate', e.target.value)} className="bg-[#1c1c1e] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-primary text-sm min-h-[150px] custom-scrollbar"></textarea>
+                                <span className="text-xs text-gray-500">Tags: [NOME_DO_PACOTE], [TIPO_SERVICO], [LISTA_DE_BENEFICIOS_DO_PACOTE], [VALOR_DO_ORÇAMENTO]</span>
+                            </div>
+
+                            <div className="border-t border-white/10 pt-6 mt-2 flex flex-col gap-4 text-left">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium text-white">Exibir Disponibilidade</span>
+                                        <span className="text-xs text-gray-500">Mostra o card de "PJ/CLT" abaixo das redes.</span>
+                                    </div>
+                                    <button
+                                        onClick={() => updateContact('showAvailability', !config.contact.showAvailability)}
+                                        className={`w-12 h-6 rounded-full transition-colors relative focus:outline-none ${config.contact.showAvailability ? 'bg-[#34c759]' : 'bg-gray-600'}`}
+                                    >
+                                        <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-md ${config.contact.showAvailability ? 'left-[26px]' : 'left-0.5'}`}></div>
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
+                </motion.div>
+            );
+        }
+
+        function LoginPage() {
+            const { handleLogin } = useContext(AppContext);
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+
+            const onSubmit = (e) => { e.preventDefault(); handleLogin(username, password); };
+
+            return (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex items-center justify-center min-h-[70vh] relative z-10">
+                    <div className="glass p-12 rounded-[2.5rem] max-w-md w-full text-center subtle-neon-hover-tertiary">
+                        <div className="w-20 h-20 bg-[#1c1c1e] rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl border border-white/5"><Lock size={32} className="text-white" /></div>
+                        <h2 className="text-3xl font-bold mb-3 tracking-tight text-white">Acesso Restrito</h2>
+                        <p className="text-[#86868b] mb-10 text-base">Autentique-se para gerenciar o sistema.</p>
+                        <form onSubmit={onSubmit} className="flex flex-col gap-5">
+                            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuário" className="bg-[#1c1c1e] border border-white/10 focus:border-white/30 rounded-2xl p-4 text-white text-center outline-none transition-all" autoFocus />
+                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" className="bg-[#1c1c1e] border border-white/10 focus:border-white/30 rounded-2xl p-4 text-white text-center outline-none transition-all" />
+                            <button type="submit" className="bg-white text-black font-bold py-4 rounded-2xl hover:bg-gray-200 transition-all flex items-center justify-center gap-2 mt-2 text-lg"><LogIn size={20} /> Entrar</button>
+                        </form>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        function PricingPage() {
+            const { config, setConfig, isAuthenticated } = useContext(AppContext);
+            const pricing = config.pricing;
+
+            const updatePromo = (key, val) => setConfig(p => ({ ...p, pricing: { ...p.pricing, promotions: { ...p.pricing.promotions, [key]: val } } }));
+            const updatePackage = (catIndex, pkgIndex, field, val) => {
+                setConfig(p => {
+                    const newCats = [...p.pricing.categories];
+                    newCats[catIndex].packages[pkgIndex] = { ...newCats[catIndex].packages[pkgIndex], [field]: val };
+                    return { ...p, pricing: { ...p.pricing, categories: newCats } };
+                });
+            };
+
+            const updateFeature = (catIndex, pkgIndex, featIndex, val) => {
+                setConfig(p => {
+                    const newCats = [...p.pricing.categories];
+                    const feats = [...newCats[catIndex].packages[pkgIndex].features];
+                    feats[featIndex] = val;
+                    newCats[catIndex].packages[pkgIndex] = { ...newCats[catIndex].packages[pkgIndex], features: feats };
+                    return { ...p, pricing: { ...p.pricing, categories: newCats } };
+                });
+            };
+
+            const updateCategory = (catIndex, field, val) => {
+                setConfig(p => {
+                    const newCats = [...p.pricing.categories];
+                    newCats[catIndex] = { ...newCats[catIndex], [field]: val };
+                    return { ...p, pricing: { ...p.pricing, categories: newCats } };
+                });
+            };
+
+            return (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-16 relative z-10 pb-20">
+                    <section className="text-center mt-8">
+                        <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tighter metallic-text drop-shadow-lg">Investimento.</h1>
+                        <p className="text-gray-300 text-xl font-light">Transparência e alto valor agregado para o seu projeto.</p>
+                    </section>
+
+                    <div className="max-w-4xl mx-auto w-full">
+                        <PricingPromos />
+                    </div>
+
+                    <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 w-full mt-8 items-stretch">
+                        {pricing.categories.map((cat, cIdx) => {
+                            const meta = disciplineMeta[cat.id] || { color: '#ffffff', hex: '255,255,255', emoji: '▫️' };
+                            return (
+                                <div key={cat.id} className="glass rounded-[2rem] flex flex-col overflow-hidden border border-white/10 transition-all duration-300">
+                                    <div className="px-6 h-[104px] flex items-center justify-center bg-black/40 backdrop-blur-md relative border-b border-white/10">
+                                        <h2 className="text-xl font-extrabold text-center tracking-widest uppercase relative z-10 leading-tight w-full" style={{ color: meta.color, textShadow: `0 0 10px rgba(${meta.hex}, 0.5)` }}>
+                                            {isAuthenticated ? <input value={cat.name} onChange={e => updateCategory(cIdx, 'name', e.target.value.toUpperCase())} className="bg-transparent border-b border-white/20 w-full outline-none text-center uppercase" /> : cat.name.toUpperCase()}
+                                        </h2>
+                                    </div>
+
+                                    <div className="flex flex-col flex-1 relative">
+                                        {cat.packages.map((pkg, pIdx) => {
+                                            const isLast = pIdx === cat.packages.length - 1;
+                                            return (
+                                                <div key={pkg.id} className={`flex flex-col p-6 transition-all relative ${pkg.isPopular ? 'bg-white/5 z-10' : 'hover:bg-white/5'} flex-1`}>
+                                                    {!isLast && <div className="absolute bottom-0 left-6 right-6 h-[1px] bg-white/10"></div>}
+
+                                                    {isAuthenticated && (
+                                                        <div className="absolute top-2 right-2 flex items-center gap-2 z-20 bg-black/60 px-2 py-1 rounded-full border border-white/10">
+                                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Destacar</span>
+                                                            <input type="checkbox" checked={pkg.isPopular} onChange={(e) => updatePackage(cIdx, pIdx, 'isPopular', e.target.checked)} className="cursor-pointer accent-primary" />
+                                                        </div>
+                                                    )}
+
+                                                    <div className="h-[48px] flex items-start mb-2 pr-12">
+                                                        <h3 className="text-lg font-bold text-white leading-tight">
+                                                            {isAuthenticated ? <input value={pkg.name} onChange={e => updatePackage(cIdx, pIdx, 'name', e.target.value)} className="bg-transparent border-b border-white/20 text-white w-full outline-none" /> : pkg.name}
+                                                        </h3>
+                                                    </div>
+
+                                                    <div className="text-xl font-bold mb-5 h-[28px] flex items-center text-white whitespace-nowrap tracking-tight">
+                                                        {isAuthenticated ? <input value={pkg.price} onChange={e => updatePackage(cIdx, pIdx, 'price', e.target.value)} className="bg-transparent border-b border-white/20 w-full outline-none text-white" /> : pkg.price}
+                                                    </div>
+
+                                                    <ul className="flex flex-col gap-3 h-[180px] mb-6 custom-scrollbar overflow-y-auto pr-1">
+                                                        {pkg.features.map((feat, fIdx) => (
+                                                            <li key={fIdx} className="text-sm text-gray-300 flex items-start gap-2">
+                                                                <Check size={16} className="shrink-0 mt-0.5 text-gray-300" />
+                                                                {isAuthenticated ? <input value={feat} onChange={e => updateFeature(cIdx, pIdx, fIdx, e.target.value)} className="bg-transparent border-b border-white/10 text-gray-300 w-full outline-none text-xs" /> : <span className="leading-tight">{feat}</span>}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+
+                                                    <div className="mt-auto pt-4 border-t border-white/5">
+                                                        {isAuthenticated ? (
+                                                            <input value={pkg.link || ''} onChange={e => updatePackage(cIdx, pIdx, 'link', e.target.value)} placeholder="Link CTA Customizado (opcional)" className="bg-[#1c1c1e] text-xs p-3 rounded-xl text-white outline-none w-full border border-white/10 focus:border-primary" />
+                                                        ) : (
+                                                            <a href={pkg.link || generateWhatsAppLink(config, { packageName: pkg.name, serviceType: cat.name, features: pkg.features, price: pkg.price })} target="_blank" rel="noreferrer" className={`block w-full py-3 rounded-xl text-center text-sm font-bold transition-all ${pkg.isPopular ? 'text-black shadow-lg' : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'}`} style={pkg.isPopular ? { backgroundColor: meta.color, boxShadow: `0 0 15px rgba(${meta.hex}, 0.5)` } : {}}>Selecionar</a>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </section>
+                </motion.div>
+            );
+        }
+
+        function AnimatedCounter({ value, style, className }) {
+            const [displayValue, setDisplayValue] = useState(value);
+
+            useEffect(() => {
+                let startTimestamp = null;
+                const duration = 500;
+                const startValue = displayValue;
+
+                if (startValue === value) return;
+
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                    setDisplayValue(Math.floor(startValue + (value - startValue) * ease));
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    } else {
+                        setDisplayValue(value);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }, [value]);
+
+            return <span style={style} className={className}>{displayValue}</span>;
+        }
+
+        function CustomBuilderModal() {
+            const { config, setView, isAuthenticated, setConfig } = useContext(AppContext);
+            const items = config.pricing.builderItems || [];
+            const [cart, setCart] = useState({});
+            const [filter, setFilter] = useState('all');
+            const [search, setSearch] = useState('');
+
+            const increment = (id) => setCart(p => ({ ...p, [id]: (p[id] || 0) + 1 }));
+            const decrement = (id) => setCart(p => ({ ...p, [id]: Math.max(0, (p[id] || 0) - 1) }));
+
+            const total = items.reduce((sum, item) => sum + (item.price * (cart[item.id] || 0)), 0);
+            const totalHours = items.reduce((sum, item) => sum + ((item.hours || 0) * (cart[item.id] || 0)), 0);
+
+            const updateItem = (index, field, val) => {
+                if (!isAuthenticated) return;
+                setConfig(p => {
+                    const newItems = [...p.pricing.builderItems];
+                    newItems[index] = { ...newItems[index], [field]: field === 'price' || field === 'hours' ? Number(val) : val };
+                    return { ...p, pricing: { ...p.pricing, builderItems: newItems } };
+                });
+            };
+
+            const handleSend = () => {
+                const selected = items.filter(i => cart[i.id] > 0).map(i => {
+                    const meta = disciplineMeta[i.catId] || { emoji: '▫️', name: '' };
+                    return `${meta.emoji} [${meta.name.toUpperCase()}] ${i.name}`;
+                }).join('%0A');
+
+                const text = `ORÇAMENTO PERSONALIZADO%0A${selected}%0A%0AInvestimento Total: R$ ${total},00%0APrevisão Interna: ${totalHours} horas.`;
+                window.open(`https://wa.me/${config.contact.whatsapp}?text=${text}`, '_blank');
+            };
+
+            const selectedHexes = [...new Set(items.filter(i => cart[i.id] > 0).map(i => disciplineMeta[i.catId]?.hex).filter(Boolean))];
+            const gradientStyle = selectedHexes.length > 1
+                ? { backgroundImage: `linear-gradient(to right, ${selectedHexes.map(h => `rgba(${h}, 1)`).join(', ')})`, WebkitBackgroundClip: 'text', color: 'transparent' }
+                : selectedHexes.length === 1 ? { color: `rgba(${selectedHexes[0]}, 1)`, textShadow: `0 0 15px rgba(${selectedHexes[0]}, 0.5)` }
+                    : { color: 'white' };
+
+            const isLocked = totalHours > 40;
+
+            const catCounts = items.reduce((acc, i) => {
+                if (cart[i.id] > 0) acc[i.catId] = (acc[i.catId] || 0) + cart[i.id];
+                return acc;
+            }, {});
+            const dominantCat = Object.keys(catCounts).length > 0 ? Object.keys(catCounts).reduce((a, b) => catCounts[a] > catCounts[b] ? a : b) : null;
+            const dominantHex = dominantCat ? disciplineMeta[dominantCat].hex : '255,255,255';
+
+            const filteredItems = items.filter(i => {
+                if (filter !== 'all' && i.catId !== filter) return false;
+                if (search && !i.name.toLowerCase().includes(search.toLowerCase())) return false;
+                return true;
+            });
+
+            const categoriesToRender = filter === 'all' ? ['video', 'photo', '3d', 'ilustra'] : [filter];
+
+            return (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="flex items-center justify-center min-h-[90vh] relative z-10 w-full max-w-[95vw] mx-auto my-12">
+                    <div className="glass rounded-[2.5rem] w-full text-left subtle-neon-hover-primary relative overflow-x-hidden flex flex-col lg:flex-row h-[85vh] shadow-2xl border border-white/10">
+                        <button onClick={() => setView('pricing')} className="absolute top-6 right-6 lg:right-[340px] p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all text-white z-50"><X size={20} /></button>
+
+                        <div className="flex-1 flex flex-col p-8 md:p-12 h-full overflow-hidden relative">
+                            <h2 className="text-4xl font-bold mb-2 tracking-tight text-white flex items-center gap-3"><Settings className="text-primary" /> Builder Pro</h2>
+                            <p className="text-[#86868b] mb-8 text-lg font-light">Selecione os módulos técnicos necessários. O sistema quantificará o escopo automaticamente.</p>
+
+                            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                                <div className="relative flex-1">
+                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none"><span className="text-gray-400">🔍</span></div>
+                                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar módulo (ex: Color Grading)..." className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-white/30 transition-colors" />
+                                </div>
+                                <select value={filter} onChange={e => setFilter(e.target.value)} className="bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white outline-none focus:border-white/30 appearance-none cursor-pointer sm:w-56">
+                                    <option value="all">Todas as Especialidades</option>
+                                    <option value="video">Edição de Vídeo</option>
+                                    <option value="photo">Fotografia</option>
+                                    <option value="3d">Modelagem 3D</option>
+                                    <option value="ilustra">Ilustração</option>
+                                </select>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-6 pb-12" style={{ '--scrollbar-glow': dominantHex !== '255,255,255' ? `rgba(${dominantHex}, 1)` : 'rgba(255,255,255,0.5)' }}>
+                                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start w-full">
+                                    {categoriesToRender.map(cat => {
+                                        const catItems = filteredItems.filter(i => i.catId === cat);
+                                        if (catItems.length === 0) return null;
+                                        const meta = disciplineMeta[cat] || { color: 'white', hex: '255,255,255', name: 'Geral', emoji: '▫️' };
+
+                                        return (
+                                            <div key={cat} className="flex flex-col gap-6 bg-white/[0.02] border border-white/5 rounded-3xl p-6 h-auto">
+                                                <div className="shrink-0 border-b border-white/10 pb-4">
+                                                    <h3 className="font-bold text-xl tracking-widest uppercase" style={{ color: meta.color, textShadow: `0 0 15px rgba(${meta.hex}, 0.5)` }}>{meta.name}</h3>
+                                                </div>
+                                                <div className="flex flex-col gap-4">
+                                                    {catItems.map((item) => {
+                                                        const idx = items.findIndex(i => i.id === item.id);
+                                                        const count = cart[item.id] || 0;
+                                                        const isSelected = count > 0;
+                                                        return (
+                                                            <div
+                                                                key={item.id}
+                                                                className="flex flex-col gap-2 cursor-pointer group"
+                                                                onClick={(e) => {
+                                                                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+                                                                        if (isSelected) setCart(p => ({ ...p, [item.id]: 0 }));
+                                                                        else increment(item.id);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <div className="flex items-center gap-4">
+                                                                    <div
+                                                                        className="w-5 h-5 rounded-[4px] flex items-center justify-center border transition-all duration-300 shrink-0"
+                                                                        style={isSelected ? {
+                                                                            borderColor: meta.color,
+                                                                            backgroundColor: `rgba(${meta.hex}, 0.15)`,
+                                                                            boxShadow: `0 0 12px rgba(${meta.hex}, 0.6)`
+                                                                        } : {
+                                                                            borderColor: 'rgba(255,255,255,0.2)',
+                                                                            backgroundColor: 'transparent'
+                                                                        }}
+                                                                    >
+                                                                        {isSelected && <Check size={14} color={meta.color} strokeWidth={3} />}
+                                                                    </div>
+                                                                    <div className="flex-1 flex justify-between items-center gap-2">
+                                                                        <div className="flex-1">
+                                                                            {isAuthenticated ? (
+                                                                                <input value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} className="bg-transparent border-b border-white/20 outline-none w-full text-sm font-medium text-white" />
+                                                                            ) : (
+                                                                                <h4 className={`text-sm font-medium transition-colors ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>{item.name}</h4>
+                                                                            )}
+                                                                            {isAuthenticated && <div className="mt-1 flex gap-2 text-xs text-gray-500">
+                                                                                R$ <input type="number" value={item.price} onChange={e => updateItem(idx, 'price', e.target.value)} className="bg-transparent border-b border-white/20 outline-none w-12" /> /
+                                                                                <input value={item.unit} onChange={e => updateItem(idx, 'unit', e.target.value)} className="bg-transparent border-b border-white/20 outline-none w-16" />
+                                                                                H: <input type="number" step="0.1" value={item.hours || 0} onChange={e => updateItem(idx, 'hours', e.target.value)} className="bg-transparent border-b border-white/20 outline-none w-10" />
+                                                                            </div>}
+                                                                        </div>
+                                                                        {!isAuthenticated && (
+                                                                            <div className="flex items-center gap-3 shrink-0">
+                                                                                {isSelected && (
+                                                                                    <div className="flex items-center gap-2 mr-1">
+                                                                                        <button onClick={(e) => { e.stopPropagation(); decrement(item.id); }} className="text-gray-400 hover:text-white transition-colors p-1 flex items-center justify-center font-bold text-lg leading-none" style={{ textShadow: `0 0 8px rgba(${meta.hex},0.5)` }}>-</button>
+                                                                                        <span className="text-sm font-bold w-4 text-center" style={{ color: meta.color, textShadow: `0 0 8px rgba(${meta.hex},0.5)` }}>{count}</span>
+                                                                                        <button onClick={(e) => { e.stopPropagation(); increment(item.id); }} className="text-gray-400 hover:text-white transition-colors p-1 flex items-center justify-center font-bold text-lg leading-none" style={{ textShadow: `0 0 8px rgba(${meta.hex},0.5)` }}>+</button>
+                                                                                    </div>
+                                                                                )}
+                                                                                <span className={`text-sm font-bold transition-colors ${isSelected ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}>R$ {item.price}</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full lg:w-[320px] shrink-0 glass bg-white/5 flex flex-col p-8 border-l border-white/10 shadow-2xl relative z-10 h-full">
+                            <h3 className="font-bold text-xl text-white mb-6 tracking-tight">Resumo do Escopo</h3>
+
+                            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 mb-6 pr-2">
+                                {items.filter(i => cart[i.id] > 0).map(i => {
+                                    const meta = disciplineMeta[i.catId] || { color: 'white' };
+                                    return (
+                                        <div key={i.id} className="flex justify-between items-start text-sm border-b border-white/5 pb-2">
+                                            <div className="flex flex-col">
+                                                <span className="text-white font-medium">{i.name}</span>
+                                                <span className="text-gray-500 text-xs">{cart[i.id]}x ({i.unit})</span>
+                                            </div>
+                                            <span className="font-bold" style={{ color: meta.color }}>R$ {i.price * cart[i.id]}</span>
+                                        </div>
+                                    )
+                                })}
+                                {total === 0 && <p className="text-gray-500 text-sm font-light italic">Nenhum módulo selecionado.</p>}
+                            </div>
+
+                            <div className="mt-auto pt-6 border-t border-white/10 flex flex-col gap-4">
+                                <div className="flex flex-col">
+                                    <span className="text-gray-400 font-medium text-sm uppercase tracking-widest mb-1">Total Estimado</span>
+                                    <div className="flex text-4xl font-sans font-bold tracking-tight text-white transition-all duration-300">
+                                        R$ <AnimatedCounter value={total} className="ml-2" />
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide leading-relaxed bg-white/5 p-3 rounded-lg border border-white/10">
+                                    Valor estimado com base na complexidade técnica selecionada. Sujeito a ajuste após briefing detalhado.
+                                </p>
+                                {isLocked && (
+                                    <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl shadow-lg relative -mt-2 mb-2">
+                                        <p className="text-red-400 text-xs leading-relaxed font-medium">Para projetos desta magnitude, o prazo de entrega excede o padrão. Por favor, entre em contato direto para um cronograma personalizado.</p>
+                                    </div>
+                                )}
+                                <button onClick={handleSend} disabled={total === 0 || isLocked} className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all ${(total === 0 || isLocked) ? 'bg-white/5 text-gray-500 cursor-not-allowed' : 'text-black shadow-lg hover:scale-[1.02]'}`} style={(total > 0 && !isLocked) ? { backgroundImage: selectedHexes.length > 1 ? `linear-gradient(to right, ${selectedHexes.map(h => `rgba(${h}, 0.8)`).join(', ')})` : `linear-gradient(to right, rgba(${selectedHexes[0]}, 0.8), rgba(${selectedHexes[0]}, 1))`, boxShadow: `0 0 20px rgba(${selectedHexes[0] || '255,255,255'}, 0.4)` } : {}}>
+                                    Solicitar via WhatsApp
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        function AdminDashboard() {
+            const { items, setItems, config, setConfig, setView } = useContext(AppContext);
+            const [isDragging, setIsDragging] = useState(false);
+            const [isDraggingFav, setIsDraggingFav] = useState(false);
+            const [isDraggingBg, setIsDraggingBg] = useState(false);
+
+            const [preview, setPreview] = useState(null);
+            const [previewType, setPreviewType] = useState('image'); // 'image' or 'video'
+            const [uploadFile, setUploadFile] = useState(null); // raw File object for IndexedDB
+            const [title, setTitle] = useState('');
+            const [category, setCategory] = useState('Edição de Vídeo');
+            const [isUploading, setIsUploading] = useState(false);
+
+            const [editingItemId, setEditingItemId] = useState(null);
+            const [editTitle, setEditTitle] = useState('');
+            const [editCategory, setEditCategory] = useState('');
+
+            const categories = ['Edição de Vídeo', 'Fotografia', 'Ilustração', 'Modelagem 3D'];
+
+            const processFile = (file) => {
+                if (!file) return;
+                const isVideo = file.type.startsWith('video/');
+                const isImage = file.type.startsWith('image/');
+                if (!isVideo && !isImage) return;
+
+                setUploadFile(file);
+                setPreviewType(isVideo ? 'video' : 'image');
+                const objectUrl = URL.createObjectURL(file);
+                setPreview(objectUrl);
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault(); setIsDragging(false);
+                processFile(e.dataTransfer.files[0]);
+            };
+
+            const handleFileSelect = (e) => {
+                processFile(e.target.files[0]);
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault(); 
+                if (!uploadFile || !title) return;
+                setIsUploading(true);
+                try {
+                    const itemId = Date.now().toString();
+                    // Store file blob in IndexedDB (no size limit)
+                    await MediaDB.save(itemId, uploadFile);
+                    const blobUrl = URL.createObjectURL(uploadFile);
+                    const newItem = { 
+                        id: itemId, 
+                        title, 
+                        category, 
+                        url: blobUrl,
+                        mediaType: previewType,
+                        isHighlight: false,
+                        isLocal: true 
+                    };
+                    setItems([newItem, ...items]);
+                    setPreview(null); setUploadFile(null); setTitle('');
+                } catch(err) {
+                    console.error('Upload failed:', err);
+                    alert('Erro ao salvar arquivo. Tente novamente.');
+                }
+                setIsUploading(false);
+            };
+
+            const deleteItem = async (id) => { 
+                if (window.confirm('Excluir este item?')) {
+                    try { await MediaDB.remove(id); } catch(e) {}
+                    setItems(items.filter(item => item.id !== id)); 
+                }
+            };
+            const startEditItem = (item) => { setEditingItemId(item.id); setEditTitle(item.title); setEditCategory(item.category); };
+            const saveEditItem = (id) => { setItems(items.map(item => item.id === id ? { ...item, title: editTitle, category: editCategory } : item)); setEditingItemId(null); };
+
+            const updateColor = (key, hex) => { setConfig(prev => ({ ...prev, colors: { ...prev.colors, [key]: hex } })); };
+
+            const handleFaviconUpload = (e) => {
+                const file = e.target.files?.[0] || e.dataTransfer?.files?.[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => setConfig(prev => ({ ...prev, favicon: evt.target.result }));
+                    reader.readAsDataURL(file);
+                }
+                setIsDraggingFav(false);
+            };
+
+            const handleBgUpload = (e) => {
+                const file = e.target.files?.[0] || e.dataTransfer?.files?.[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => setConfig(prev => ({ ...prev, bgImage: evt.target.result, bgType: 'image' }));
+                    reader.readAsDataURL(file);
+                }
+                setIsDraggingBg(false);
+            };
+
+            return (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="max-w-6xl mx-auto mt-6 relative z-10">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-white/10">
+                        <div className="flex items-center gap-4">
+                            <div className="p-4 bg-white/5 rounded-2xl border border-white/10"><LayoutDashboard size={32} className="text-white" /></div>
+                            <div><h1 className="text-3xl font-bold tracking-tight text-white">Console Admin</h1><p className="text-[#86868b] mt-1">Gerencie seu ecossistema digital.</p></div>
+                        </div>
+                        <button onClick={() => setView('pricing')} className="bg-primary/20 text-white border border-primary/50 hover:bg-primary/40 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(var(--color-primary),0.3)]">
+                            <Tag size={18} /> Editar Preços
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="lg:col-span-5 flex flex-col gap-8">
+
+                            <div className="glass p-8 rounded-3xl subtle-neon-hover-primary">
+                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white"><Upload size={20} className="text-primary" /> Novo Arquivo</h2>
+                                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                                    <div className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative overflow-hidden ${isDragging ? 'border-primary bg-primary/5' : 'border-white/10 hover:border-white/30 bg-[#1c1c1e]'} ${preview ? 'p-2 border-solid border-primary/30' : ''}`}
+                                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} onClick={() => document.getElementById('file-upload').click()}
+                                    >
+                                        <input type="file" id="file-upload" className="hidden" accept=".png,.jpg,.jpeg,.webp,.mp4,.mov,.webm" onChange={handleFileSelect} />
+                                        {preview ? (
+                                            <div className="relative group rounded-xl overflow-hidden h-48 w-full">
+                                                {previewType === 'video' ? (
+                                                    <video src={preview} className="w-full h-full object-cover" muted loop autoPlay playsInline />
+                                                ) : (
+                                                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                                                )}
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-lg border border-white/20">Trocar arquivo</span>
+                                                </div>
+                                                <div className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold uppercase px-2 py-1 rounded-lg">
+                                                    {previewType === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-4 py-6 pointer-events-none"><div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><Upload size={24} className="text-white" /></div><div><p className="text-base font-semibold text-white">Arraste imagem ou vídeo</p><p className="text-sm text-[#86868b] mt-1">.png .jpg .mp4 .mov .webm</p></div></div>
+                                        )}
+                                    </div>
+                                    <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none text-sm transition-all" placeholder="Título do Projeto" required />
+                                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none cursor-pointer text-sm transition-all appearance-none">
+                                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                    </select>
+                                    <button type="submit" disabled={!uploadFile || !title || isUploading} className="bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2">
+                                        {isUploading ? <><span className="animate-spin inline-block w-5 h-5 border-2 border-black border-t-transparent rounded-full" /> Salvando...</> : <><CheckCircle size={20} /> Publicar</>}
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div className="glass p-8 rounded-3xl subtle-neon-hover-secondary">
+                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white"><Settings size={20} className="text-secondary" /> Personalização de Sistema</h2>
+
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex items-center justify-between p-3 bg-[#1c1c1e] rounded-xl border border-white/5">
+                                        <span className="text-sm font-medium text-white">Cor Primária</span><input type="color" value={config.colors.primary} onChange={(e) => updateColor('primary', e.target.value)} className="w-8 h-8 rounded-full cursor-pointer bg-transparent border-0 p-0" />
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-[#1c1c1e] rounded-xl border border-white/5">
+                                        <span className="text-sm font-medium text-white">Cor Secundária</span><input type="color" value={config.colors.secondary} onChange={(e) => updateColor('secondary', e.target.value)} className="w-8 h-8 rounded-full cursor-pointer bg-transparent border-0 p-0" />
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-[#1c1c1e] rounded-xl border border-white/5">
+                                        <span className="text-sm font-medium text-white">Cor Terciária</span><input type="color" value={config.colors.tertiary} onChange={(e) => updateColor('tertiary', e.target.value)} className="w-8 h-8 rounded-full cursor-pointer bg-transparent border-0 p-0" />
+                                    </div>
+                                </div>
+
+                                {/* Switch iOS Style for Background */}
+                                <div className="mt-6 border-t border-white/10 pt-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium text-white">Fundo Abstrato (Apple Style)</span>
+                                            <span className="text-xs text-gray-500">Desative para usar uma imagem customizada</span>
+                                        </div>
+                                        <button
+                                            onClick={() => setConfig(p => ({ ...p, bgType: p.bgType === 'abstract' ? 'image' : 'abstract' }))}
+                                            className={`w-12 h-6 rounded-full transition-colors relative focus:outline-none ${config.bgType === 'abstract' ? 'bg-[#34c759]' : 'bg-gray-600'}`}
+                                        >
+                                            <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all shadow-md ${config.bgType === 'abstract' ? 'left-[26px]' : 'left-0.5'}`}></div>
+                                        </button>
+                                    </div>
+
+                                    {config.bgType === 'image' && (
+                                        <div
+                                            className={`border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-3 transition-all mt-4 ${isDraggingBg ? 'border-primary bg-primary/5' : 'border-white/10 hover:border-white/30 bg-[#1c1c1e]'}`}
+                                            onDragOver={(e) => { e.preventDefault(); setIsDraggingBg(true); }}
+                                            onDragLeave={() => setIsDraggingBg(false)}
+                                            onDrop={(e) => { e.preventDefault(); handleBgUpload(e); }}
+                                        >
+                                            {config.bgImage ? (
+                                                <div className="relative group rounded-lg overflow-hidden h-24 w-full border border-white/10">
+                                                    <img src={config.bgImage} alt="Custom BG" className="w-full h-full object-cover" />
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-gray-400 text-center">Arraste uma imagem para Fundo</p>
+                                            )}
+
+                                            <div className="flex gap-2 w-full justify-center mt-2">
+                                                <button onClick={(e) => { e.preventDefault(); document.getElementById('bg-upload').click(); }} className="bg-white/10 text-white text-xs font-bold py-2 px-4 rounded-lg hover:bg-white/20 transition-colors">Selecionar</button>
+                                            </div>
+                                            <input type="file" id="bg-upload" className="hidden" accept="image/*" onChange={(e) => handleBgUpload(e)} />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Header Logo Upload */}
+                                <div className="mt-6 border-t border-white/10 pt-6">
+                                    <span className="text-sm font-medium text-white block mb-1">Logo do Header</span>
+                                    <span className="text-xs text-gray-500 block mb-4">Ícone exibido ao lado do nome no menu de navegação</span>
+                                    <div className="flex items-center gap-4 p-4 bg-[#1c1c1e] rounded-xl border border-white/5">
+                                        <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                                            {config.headerLogo ? (
+                                                <img src={config.headerLogo} alt="Logo" className="w-full h-full object-contain p-1" />
+                                            ) : (
+                                                <ImageIcon size={20} className="text-[#48484a]" />
+                                            )}
+                                        </div>
+                                        <div className="flex gap-2 flex-1">
+                                            <button onClick={(e) => { e.preventDefault(); document.getElementById('header-logo-upload').click(); }} className="bg-white text-black text-xs font-bold py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Upload</button>
+                                            {config.headerLogo && <button onClick={(e) => { e.preventDefault(); setConfig(p => ({ ...p, headerLogo: null })); }} className="bg-white/10 text-red-400 text-xs font-bold py-2 px-4 rounded-lg hover:bg-white/20 transition-colors">Remover</button>}
+                                        </div>
+                                        <input type="file" id="header-logo-upload" className="hidden" accept=".png,.svg,.webp" onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) { const r = new FileReader(); r.onload = (evt) => setConfig(p => ({ ...p, headerLogo: evt.target.result })); r.readAsDataURL(file); }
+                                        }} />
+                                    </div>
+                                </div>
+
+                                {/* Favicon Upload */}
+                                <div className="mt-6 border-t border-white/10 pt-6">
+                                    <span className="text-sm font-medium text-white block mb-4">Ícone do Navegador (Favicon)</span>
+                                    <div className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-4 transition-all ${isDraggingFav ? 'border-primary bg-primary/5' : 'border-white/10 hover:border-white/30 bg-[#1c1c1e]'}`}
+                                        onDragOver={(e) => { e.preventDefault(); setIsDraggingFav(true); }} onDragLeave={() => setIsDraggingFav(false)} onDrop={(e) => { e.preventDefault(); handleFaviconUpload(e); }}
+                                    >
+                                        <div className="flex items-center gap-2 bg-black/60 px-4 py-2 rounded-t-xl border-b border-white/10 shadow-inner min-w-[150px]">
+                                            <img src={config.favicon || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🎨</text></svg>'} alt="Favicon" className="w-4 h-4 object-contain" />
+                                            <span className="text-xs text-gray-400 truncate max-w-[100px]">{config.siteName}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 text-center">Arraste um .png, .svg ou .ico <br /> ou clique para selecionar</p>
+                                        <div className="flex gap-2 w-full justify-center">
+                                            <button onClick={(e) => { e.preventDefault(); document.getElementById('favicon-upload').click(); }} className="bg-white text-black text-xs font-bold py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">Upload</button>
+                                            {config.favicon && <button onClick={(e) => { e.preventDefault(); setConfig(p => ({ ...p, favicon: null })); }} className="bg-white/10 text-red-400 text-xs font-bold py-2 px-4 rounded-lg hover:bg-white/20 transition-colors">Reset</button>}
+                                        </div>
+                                        <input type="file" id="favicon-upload" className="hidden" accept=".png,.ico,.svg" onChange={(e) => handleFaviconUpload(e)} />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-7 glass p-8 rounded-3xl flex flex-col h-full max-h-[880px]">
+                            <h2 className="text-xl font-bold mb-8 flex items-center gap-2 text-white"><Box size={20} className="text-white" /> Acervo do Portfólio</h2>
+                            <div className="flex-1 overflow-y-auto pr-3 flex flex-col gap-4 custom-scrollbar">
+                                {items.length === 0 ? (
+                                    <div className="text-center py-20 text-[#86868b]"><Box size={48} className="mx-auto mb-4 opacity-20" /><p>Nenhum projeto.</p></div>
+                                ) : (
+                                    <AnimatePresence>
+                                        {items.map(item => (
+                                            <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                                                className={`bg-[#1c1c1e] border rounded-2xl p-4 flex gap-5 items-center group transition-all ${item.isHighlight ? 'border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.1)]' : 'border-white/5 hover:border-white/20'}`}
+                                            >
+                                                <div className="relative w-24 h-24 shrink-0">
+                                                    <MediaThumbnail src={item.url} mediaType={item.mediaType} alt={item.title} className="w-24 h-24 rounded-xl object-cover border border-white/10 shadow-md" />
+                                                    {item.mediaType === 'video' && <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">🎬</div>}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    {editingItemId === item.id ? (
+                                                        <div className="flex flex-col gap-2">
+                                                            <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary" />
+                                                            <select value={editCategory} onChange={e => setEditCategory(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary">
+                                                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                                            </select>
+                                                            <div className="flex gap-2 mt-2">
+                                                                <button onClick={() => saveEditItem(item.id)} className="text-xs font-bold bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200">Salvar</button>
+                                                                <button onClick={() => setEditingItemId(null)} className="text-xs font-bold bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20">Cancelar</button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <h4 className="font-bold truncate text-lg text-white mb-1 flex items-center gap-2">
+                                                                {item.title}
+                                                                {item.isHighlight && <Crown size={16} className="text-yellow-500 fill-yellow-500" />}
+                                                            </h4>
+                                                            <span className="text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1 rounded-full inline-block border border-white/5 uppercase tracking-wide">{item.category}</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {editingItemId !== item.id && (
+                                                    <div className="flex flex-col gap-2 shrink-0">
+                                                        <button 
+                                                            onClick={() => {
+                                                                const newItems = [...items];
+                                                                const idx = newItems.findIndex(i => i.id === item.id);
+                                                                newItems[idx].isHighlight = !newItems[idx].isHighlight;
+                                                                setItems(newItems);
+                                                            }}
+                                                            title={item.isHighlight ? "Remover dos destaques" : "Promover a destaque"}
+                                                            className={`p-3 rounded-xl transition-all ${item.isHighlight ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                        >
+                                                            <Crown size={18} fill={item.isHighlight ? "currentColor" : "none"} />
+                                                        </button>
+                                                        <button onClick={() => startEditItem(item)} className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"><Edit3 size={18} /></button>
+                                                        <button onClick={() => deleteItem(item.id)} className="p-3 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"><Trash2 size={18} /></button>
+                                                    </div>
+                                                )}
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        class ErrorBoundary extends React.Component {
+            constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+            static getDerivedStateFromError(error) { return { hasError: true, error }; }
+            componentDidCatch(error, info) { console.error('App crash:', error, info); }
+            render() {
+                if (this.state.hasError) {
+                    return React.createElement('div', {
+                        style: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#08080c', color: 'white', fontFamily: 'Inter, sans-serif', gap: '20px', padding: '40px', textAlign: 'center' }
+                    },
+                        React.createElement('h1', { style: { fontSize: '2rem', fontWeight: 'bold' } }, '⚠️ Ops! Algo deu errado.'),
+                        React.createElement('p', { style: { color: '#86868b', maxWidth: '400px' } }, 'O aplicativo encontrou um erro. Clique abaixo para resetar e voltar ao normal.'),
+                        React.createElement('p', { style: { color: '#ff4444', fontSize: '12px', maxWidth: '500px', wordBreak: 'break-all' } }, String(this.state.error)),
+                        React.createElement('button', {
+                            onClick: () => { localStorage.removeItem('nexusPortfolioItems_v6'); window.location.reload(); },
+                            style: { padding: '12px 32px', background: 'white', color: 'black', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }
+                        }, '🔄 Resetar e Recarregar')
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<ErrorBoundary><AppProvider><AppContent /></AppProvider></ErrorBoundary>);
+    </script>
+</body>
+
+</html>
