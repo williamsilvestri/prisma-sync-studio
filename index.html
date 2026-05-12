@@ -1818,6 +1818,7 @@
             const [carouselSlots, setCarouselSlots] = useState([null, null, null, null, null]);
             const [carouselSlotPreviews, setCarouselSlotPreviews] = useState([null, null, null, null, null]);
             const [carouselTitle, setCarouselTitle] = useState('');
+            const [carouselCategory, setCarouselCategory] = useState('Edição de Vídeo');
             const [isUploadingCarousel, setIsUploadingCarousel] = useState(false);
 
             const handleSlotFile = (idx, file) => {
@@ -1857,13 +1858,14 @@
                         title: carouselTitle.trim(),
                         url: blobUrls,
                         mediaType: 'carousel',
-                        category: 'Social Media',
+                        category: carouselCategory,
                         isLocal: true
                     };
                     setCarouselItems([...carouselItems, newItem]);
                     setCarouselSlots([null, null, null, null, null]);
                     setCarouselSlotPreviews([null, null, null, null, null]);
                     setCarouselTitle('');
+                    setCarouselCategory('Edição de Vídeo');
                 } catch(err) {
                     console.error('Carousel upload failed:', err);
                     alert('Erro ao salvar. Tente novamente.');
@@ -2066,6 +2068,7 @@
                                     </div>
                                     <span className="text-[10px] text-gray-500 text-center">{filledSlots.length}/5 imagens preenchidas</span>
                                     <input type="text" value={carouselTitle} onChange={(e) => setCarouselTitle(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none text-sm transition-all" placeholder="Título do Projeto (ex: Social Media - Cliente X)" required />
+                                    <select value={carouselCategory} onChange={(e) => setCarouselCategory(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none cursor-pointer text-sm transition-all appearance-none">{categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select>
                                     <button type="submit" disabled={filledSlots.length === 0 || !carouselTitle.trim() || isUploadingCarousel} className="bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer">
                                         {isUploadingCarousel ? <><span className="animate-spin inline-block w-5 h-5 border-2 border-black border-t-transparent rounded-full" /> Salvando...</> : <><CheckCircle size={20} /> Publicar Projeto</>}
                                     </button>
