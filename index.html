@@ -662,9 +662,9 @@
                     )}
 
                     <nav className="fixed top-0 w-full z-50 p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4 glass-nav">
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3 relative z-10 cursor-pointer" onClick={() => setView('home')}>
-                            {config.headerLogo && <img src={config.headerLogo} alt="Logo" className="w-8 h-8 md:w-9 md:h-9 object-contain rounded-lg" />}
-                            <div className="text-xl md:text-2xl font-bold tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center relative z-10 cursor-pointer text-[1.3rem] md:text-[1.5rem]" style={{ gap: '1.5rem' }} onClick={() => setView('home')}>
+                            {config.headerLogo && <img src={config.headerLogo} alt="Logo" className="object-contain rounded-lg" style={{ height: '1.5em', width: 'auto' }} />}
+                            <div className="font-bold tracking-tight" style={{ fontFamily: "'Inter', sans-serif" }}>
                                 <span className="text-[#f5f5f7] font-extrabold" style={{ fontFamily: "'Orbitron', sans-serif", letterSpacing: '-0.02em' }}>{config.siteName}</span>
                                 <span className="ml-1.5 inline-block font-bold" style={{ background: 'linear-gradient(135deg, #00f7ff, #ff00ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>{config.siteSuffix}</span>
                             </div>
