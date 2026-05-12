@@ -852,7 +852,15 @@
 
         function HighlightsCarousel({ onSelect }) {
             const { carouselItems, items, mediaReady } = useContext(AppContext);
-            const highlights = carouselItems || [];
+            // Combine highlighting: items from portfolio marked as highlights + carousel items marked as highlights
+            // If no carousel items are explicitly marked, we show all carousel items as before (fallback)
+            const carouselHighlights = carouselItems.filter(i => i.isHighlight);
+            const displayCarousels = carouselHighlights.length > 0 ? carouselHighlights : carouselItems;
+            
+            const highlights = [
+                ...items.filter(i => i.isHighlight),
+                ...displayCarousels
+            ];
             const swiperContainerRef = React.useRef(null);
             const swiperInstance = React.useRef(null);
             const [activeIndex, setActiveIndex] = useState(0);
@@ -2215,7 +2223,7 @@
                                                     onDragStart={() => handleSortStart(idx)}
                                                     onDragEnter={() => handleSortEnter(idx)}
                                                     onDragOver={(e) => e.preventDefault()}
-                                                    className="bg-[#1c1c1e] border border-white/5 hover:border-white/20 rounded-2xl p-4 flex gap-5 items-center group transition-all cursor-move relative"
+                                                    className={`bg-[#1c1c1e] border rounded-2xl p-4 flex gap-5 items-center group transition-all cursor-move relative ${item.isHighlight ? 'border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.1)]' : 'border-white/5 hover:border-white/20'}`}
                                                 >
                                                     <div className="absolute left-2 text-gray-600 opacity-50 cursor-move"><GripVertical size={20} /></div>
                                                     <div className="relative w-24 h-24 shrink-0 ml-4 pointer-events-none">
@@ -2238,13 +2246,28 @@
                                                             </div>
                                                         ) : (
                                                             <>
-                                                                <h4 className="font-bold truncate text-lg text-white mb-1 flex items-center gap-2">{item.title}</h4>
+                                                                <h4 className="font-bold truncate text-lg text-white mb-1 flex items-center gap-2">
+                                                                    {item.title}
+                                                                    {item.isHighlight && <Crown size={16} className="text-yellow-500 fill-yellow-500" />}
+                                                                </h4>
                                                                 <span className="text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1 rounded-full inline-block border border-white/5">{Array.isArray(item.url) ? `📸 ${item.url.length} imagens` : '🖼️ 1 imagem'}</span>
                                                             </>
                                                         )}
                                                     </div>
                                                     {editingCarouselId !== item.id && (
                                                         <div className="flex flex-col gap-2 shrink-0">
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const newItems = [...carouselItems];
+                                                                    const idx = newItems.findIndex(i => i.id === item.id);
+                                                                    newItems[idx].isHighlight = !newItems[idx].isHighlight;
+                                                                    setCarouselItems(newItems);
+                                                                }}
+                                                                title={item.isHighlight ? "Remover dos destaques" : "Promover a destaque"}
+                                                                className={`p-3 rounded-xl transition-all cursor-pointer ${item.isHighlight ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            >
+                                                                <Crown size={18} fill={item.isHighlight ? "currentColor" : "none"} />
+                                                            </button>
                                                             <button onClick={() => startEditCarouselItem(item)} className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all cursor-pointer"><Edit3 size={18} /></button>
                                                             <button onClick={() => deleteCarouselItem(item.id)} className="p-3 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all cursor-pointer"><Trash2 size={18} /></button>
                                                         </div>
