@@ -497,23 +497,28 @@
                 return localStorage.getItem('nexusAuthToken_v6') === 'true';
             });
 
+            // Flag para saber se o usuário já inicializou dados alguma vez
+            const dataInitialized = localStorage.getItem('nexusDataInitialized_v1') === 'true';
+
             const [items, setItemsRaw] = useState(() => {
                 const saved = localStorage.getItem('nexusPortfolioItems_v6');
                 if (saved) {
                     try {
                         const parsed = JSON.parse(saved);
                         return parsed.map(item => ({ ...item, isHighlight: item.isHighlight || false, mediaType: item.mediaType || 'image' }));
-                    } catch(e) { return initialItems; }
+                    } catch(e) { /* fallback abaixo */ }
                 }
-                return initialItems;
+                // Só usa mock data se nunca houve inicialização
+                return dataInitialized ? [] : initialItems;
             });
 
             const [carouselItems, setCarouselItemsRaw] = useState(() => {
                 const saved = localStorage.getItem('nexusCarouselItems_v1');
                 if (saved) {
-                    try { return JSON.parse(saved); } catch(e) {}
+                    try { return JSON.parse(saved); } catch(e) { /* fallback abaixo */ }
                 }
-                return initialItems.filter(i => i.isHighlight).map(i => ({...i, id: 'hc_' + i.id, linkId: i.id}));
+                // Só usa mock data se nunca houve inicialização
+                return dataInitialized ? [] : initialItems.filter(i => i.isHighlight).map(i => ({...i, id: 'hc_' + i.id, linkId: i.id, category: i.category}));
             });
 
             const [mediaReady, setMediaReady] = useState(false);
@@ -618,6 +623,8 @@
                         url: item.isLocal ? '' : item.url  // strip blob URLs, IndexedDB has the data
                     }));
                     localStorage.setItem('nexusPortfolioItems_v6', JSON.stringify(metaItems));
+                    // Marcar que dados foram inicializados pelo menos uma vez
+                    localStorage.setItem('nexusDataInitialized_v1', 'true');
                 } catch (e) {
                     console.warn('Could not save items to localStorage:', e);
                 }
@@ -1779,7 +1786,7 @@
         }
 
         function AdminDashboard() {
-            const { items, setItems, config, setConfig, setView } = useContext(AppContext);
+            const { items, setItems, carouselItems, setCarouselItems, config, setConfig, setView } = useContext(AppContext);
             const [isDragging, setIsDragging] = useState(false);
             const [isDraggingFav, setIsDraggingFav] = useState(false);
             const [isDraggingBg, setIsDraggingBg] = useState(false);
