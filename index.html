@@ -672,7 +672,7 @@
             };
 
             return (
-                <AppContext.Provider value={{ items, setItems, carouselItems, setCarouselItems, config, setConfig, view, setView, isAuthenticated, handleLogin, handleLogout }}>
+                <AppContext.Provider value={{ items, setItems, carouselItems, setCarouselItems, config, setConfig, view, setView, isAuthenticated, handleLogin, handleLogout, mediaReady }}>
                     {children}
                 </AppContext.Provider>
             );
@@ -837,17 +837,22 @@
         }
 
         function HighlightsCarousel({ onSelect }) {
-            const { carouselItems, items } = useContext(AppContext);
+            const { carouselItems, items, mediaReady } = useContext(AppContext);
             const highlights = carouselItems || [];
             const swiperContainerRef = React.useRef(null);
             const swiperInstance = React.useRef(null);
             const [activeIndex, setActiveIndex] = useState(0);
 
             useEffect(() => {
-                if (typeof window.Swiper === 'undefined' || highlights.length === 0) return;
+                if (typeof window.Swiper === 'undefined' || highlights.length === 0 || !mediaReady) return;
 
-                if (swiperContainerRef.current && !swiperInstance.current) {
+                if (swiperContainerRef.current) {
+                    if (swiperInstance.current) {
+                        swiperInstance.current.destroy(true, true);
+                    }
                     swiperInstance.current = new window.Swiper(swiperContainerRef.current, {
+                        observer: true,
+                        observeParents: true,
                         effect: 'coverflow',
                         grabCursor: true,
                         centeredSlides: true,
@@ -894,11 +899,21 @@
                 }
                 return () => {
                     if (swiperInstance.current) {
-                        swiperInstance.current.destroy();
+                        swiperInstance.current.destroy(true, true);
                         swiperInstance.current = null;
                     }
                 };
-            }, [highlights.length]);
+            }, [highlights, mediaReady]);
+
+            if (!mediaReady) {
+                return (
+                    <section className="w-full relative py-20 flex justify-center items-center h-[400px]">
+                        <div className="glass p-6 rounded-full flex items-center justify-center border border-white/10 shadow-[0_0_30px_rgba(0,247,255,0.15)]">
+                            <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+                        </div>
+                    </section>
+                );
+            }
 
             if (highlights.length === 0) return null;
 
@@ -1821,7 +1836,10 @@
 
             const handleSubmit = async (e) => {
                 e.preventDefault(); 
-                if (!uploadFile || !title) return;
+                if (!uploadFile || !title.trim()) {
+                    alert('Erro de Validação: Arquivo de mídia e título são obrigatórios.');
+                    return;
+                }
 
                 if (adminTab === 'carousel' && carouselItems.length >= 5) {
                     alert('Limite de 5 slots atingido no Carrossel. Remova um item para adicionar outro.');
@@ -1830,7 +1848,8 @@
 
                 setIsUploading(true);
                 try {
-                    const itemId = Date.now().toString();
+                    // Garantir ID único absoluto
+                    const itemId = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
                     await MediaDB.save(itemId, uploadFile);
                     
                     let blobUrl;
@@ -1838,6 +1857,10 @@
                         blobUrl = uploadFile.map(f => URL.createObjectURL(f));
                     } else {
                         blobUrl = URL.createObjectURL(uploadFile);
+                    }
+                    
+                    if (!blobUrl || (Array.isArray(blobUrl) && blobUrl.length === 0) || (typeof blobUrl === 'string' && !blobUrl.startsWith('blob:'))) {
+                        throw new Error("URL de mídia gerada é inválida ou corrompida.");
                     }
                     
                     if (adminTab === 'carousel') {
@@ -1887,7 +1910,14 @@
                 }
             };
             const startEditCarouselItem = (item) => { setEditingCarouselId(item.id); setEditCarouselTitle(item.title); setEditCarouselLinkId(item.linkId || ''); };
-            const saveEditCarouselItem = (id) => { setCarouselItems(carouselItems.map(item => item.id === id ? { ...item, title: editCarouselTitle, linkId: editCarouselLinkId } : item)); setEditingCarouselId(null); };
+            const saveEditCarouselItem = (id) => { 
+                if (!editCarouselTitle.trim()) {
+                    alert('Erro de Validação: O título não pode ficar em branco para o funcionamento do carrossel.');
+                    return;
+                }
+                setCarouselItems(carouselItems.map(item => item.id === id ? { ...item, title: editCarouselTitle.trim(), linkId: editCarouselLinkId.trim() } : item)); 
+                setEditingCarouselId(null); 
+            };
 
             const handleSortStart = (idx) => setDraggedCarouselIdx(idx);
             const handleSortEnter = (idx) => {
