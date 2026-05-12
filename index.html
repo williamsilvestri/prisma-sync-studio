@@ -166,7 +166,7 @@
         import { motion, AnimatePresence } from 'framer-motion';
         import {
             Video, Camera, PenTool, Box, Upload, CheckCircle, Image as ImageIcon,
-            Lock, LayoutDashboard, Home, Trash2, Edit3, Settings, LogOut, Check, X, LogIn, User, Plus, MessageCircle, Instagram, Briefcase, Tag, Star, ChevronLeft, ChevronRight, Crown, Play, Pause, Maximize, Volume2, VolumeX, HelpCircle, FileText, ChevronDown
+            Lock, LayoutDashboard, Home, Trash2, Edit3, Settings, LogOut, Check, X, LogIn, User, Plus, MessageCircle, Instagram, Briefcase, Tag, Star, ChevronLeft, ChevronRight, Crown, Play, Pause, Maximize, Volume2, VolumeX, HelpCircle, FileText, ChevronDown, GripVertical
         } from 'lucide-react';
 
         const disciplineMeta = {
@@ -508,14 +508,23 @@
                 return initialItems;
             });
 
+            const [carouselItems, setCarouselItemsRaw] = useState(() => {
+                const saved = localStorage.getItem('nexusCarouselItems_v1');
+                if (saved) {
+                    try { return JSON.parse(saved); } catch(e) {}
+                }
+                return initialItems.filter(i => i.isHighlight).map(i => ({...i, id: 'hc_' + i.id, linkId: i.id}));
+            });
+
             const [mediaReady, setMediaReady] = useState(false);
 
             // Wrap setItems to also persist to IndexedDB-aware localStorage
             const setItems = (newItemsOrFn) => {
-                setItemsRaw(prev => {
-                    const next = typeof newItemsOrFn === 'function' ? newItemsOrFn(prev) : newItemsOrFn;
-                    return next;
-                });
+                setItemsRaw(prev => typeof newItemsOrFn === 'function' ? newItemsOrFn(prev) : newItemsOrFn);
+            };
+
+            const setCarouselItems = (newItemsOrFn) => {
+                setCarouselItemsRaw(prev => typeof newItemsOrFn === 'function' ? newItemsOrFn(prev) : newItemsOrFn);
             };
 
             // On mount: restore blob URLs from IndexedDB for locally-stored media
@@ -537,6 +546,23 @@
                             return item;
                         }));
                         setItemsRaw(restored);
+
+                        const restoredCarousel = await Promise.all(carouselItems.map(async (item) => {
+                            if (item.isLocal) {
+                                try {
+                                    const blob = await MediaDB.load(item.id);
+                                    if (blob) {
+                                        if (Array.isArray(blob)) {
+                                            return { ...item, url: blob.map(b => URL.createObjectURL(b)) };
+                                        }
+                                        return { ...item, url: URL.createObjectURL(blob) };
+                                    }
+                                } catch(e) {}
+                            }
+                            return item;
+                        }));
+                        setCarouselItemsRaw(restoredCarousel);
+
                     } catch(e) { console.warn('Media restore failed:', e); }
                     setMediaReady(true);
                 };
@@ -596,6 +622,18 @@
                     console.warn('Could not save items to localStorage:', e);
                 }
             }, [items, mediaReady]);
+
+            useEffect(() => {
+                if (!mediaReady) return;
+                try {
+                    const metaCarousel = carouselItems.map(item => ({
+                        ...item,
+                        url: item.isLocal ? '' : item.url
+                    }));
+                    localStorage.setItem('nexusCarouselItems_v1', JSON.stringify(metaCarousel));
+                } catch (e) {}
+            }, [carouselItems, mediaReady]);
+
             useEffect(() => {
                 try {
                     localStorage.setItem('nexusConfig_v6', JSON.stringify(config));
@@ -634,7 +672,7 @@
             };
 
             return (
-                <AppContext.Provider value={{ items, setItems, config, setConfig, view, setView, isAuthenticated, handleLogin, handleLogout }}>
+                <AppContext.Provider value={{ items, setItems, carouselItems, setCarouselItems, config, setConfig, view, setView, isAuthenticated, handleLogin, handleLogout }}>
                     {children}
                 </AppContext.Provider>
             );
@@ -799,8 +837,8 @@
         }
 
         function HighlightsCarousel({ onSelect }) {
-            const { items } = useContext(AppContext);
-            const highlights = items.filter(i => i.isHighlight);
+            const { carouselItems, items } = useContext(AppContext);
+            const highlights = carouselItems || [];
             const swiperContainerRef = React.useRef(null);
             const swiperInstance = React.useRef(null);
             const [activeIndex, setActiveIndex] = useState(0);
@@ -835,13 +873,19 @@
                             slideChange: (s) => {
                                 setActiveIndex(s.realIndex);
                             },
-                            click: (s) => {
+                            click: (s, e) => {
+                                // Ignore clicks on navigation arrows
+                                if (e.target.closest('.swiper-button-prev-custom') || e.target.closest('.swiper-button-next-custom')) {
+                                    return;
+                                }
                                 if (s.clickedSlide) {
-                                    // The data-id attribute can be added to the slide to identify it
-                                    const index = s.clickedIndex;
                                     const realIndex = s.realIndex;
-                                    if (onSelect && highlights[realIndex]) {
-                                        onSelect(highlights[realIndex]);
+                                    // Only open modal if the clicked slide is the active one
+                                    if (s.activeIndex === s.clickedIndex && onSelect && highlights[realIndex]) {
+                                        const hl = highlights[realIndex];
+                                        // Find full project by linkId or fallback to the highlight itself
+                                        const linkedItem = items.find(i => i.id === hl.linkId);
+                                        onSelect(linkedItem || hl);
                                     }
                                 }
                             }
@@ -869,8 +913,7 @@
                                 return (
                                     <div key={item.id} className="swiper-slide !w-[320px] md:!w-[600px] aspect-video">
                                         <div 
-                                            className={`relative block w-full h-full rounded-[24px] overflow-hidden transition-all duration-700 border-2 cursor-pointer ${isActive ? 'scale-105 shadow-2xl z-10' : 'scale-90 opacity-30 blur-[2px] z-0'}`}
-                                            onClick={() => onSelect && onSelect(item)}
+                                            className={`relative block w-full h-full rounded-[24px] overflow-hidden transition-all duration-700 border-2 ${isActive ? 'scale-105 shadow-2xl z-10 cursor-pointer' : 'scale-90 opacity-30 blur-[2px] z-0'}`}
                                             style={{ 
                                                 borderColor: isActive ? meta.color : 'rgba(255,255,255,0.05)',
                                                 boxShadow: isActive ? `0 0 50px rgba(${meta.hex}, 0.4)` : 'none'
@@ -889,11 +932,11 @@
                             })}
                         </div>
 
-                        <div className="swiper-button-prev-custom absolute left-4 md:left-20 top-1/2 -translate-y-1/2 z-50 p-4 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-black">
-                            <ChevronLeft size={24} />
+                        <div className="swiper-button-prev-custom absolute left-4 md:left-20 top-1/2 -translate-y-1/2 z-50 w-14 h-14 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-[10px] border border-white/5 text-white cursor-pointer opacity-0 group-hover:opacity-100 subtle-neon-hover-primary">
+                            <ChevronLeft size={28} strokeWidth={1.5} />
                         </div>
-                        <div className="swiper-button-next-custom absolute right-4 md:right-20 top-1/2 -translate-y-1/2 z-50 p-4 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-black">
-                            <ChevronRight size={24} />
+                        <div className="swiper-button-next-custom absolute right-4 md:right-20 top-1/2 -translate-y-1/2 z-50 w-14 h-14 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-[10px] border border-white/5 text-white cursor-pointer opacity-0 group-hover:opacity-100 subtle-neon-hover-secondary">
+                            <ChevronRight size={28} strokeWidth={1.5} />
                         </div>
                     </div>
                 </section>
@@ -1737,6 +1780,13 @@
             const [editTitle, setEditTitle] = useState('');
             const [editCategory, setEditCategory] = useState('');
 
+            // Carousel Admin State
+            const [adminTab, setAdminTab] = useState('portfolio'); // 'portfolio' | 'carousel'
+            const [draggedCarouselIdx, setDraggedCarouselIdx] = useState(null);
+            const [editingCarouselId, setEditingCarouselId] = useState(null);
+            const [editCarouselTitle, setEditCarouselTitle] = useState('');
+            const [editCarouselLinkId, setEditCarouselLinkId] = useState('');
+
             const categories = ['Edição de Vídeo', 'Fotografia', 'Ilustração', 'Modelagem 3D'];
 
             const processFile = (files) => {
@@ -1772,6 +1822,12 @@
             const handleSubmit = async (e) => {
                 e.preventDefault(); 
                 if (!uploadFile || !title) return;
+
+                if (adminTab === 'carousel' && carouselItems.length >= 5) {
+                    alert('Limite de 5 slots atingido no Carrossel. Remova um item para adicionar outro.');
+                    return;
+                }
+
                 setIsUploading(true);
                 try {
                     const itemId = Date.now().toString();
@@ -1784,16 +1840,28 @@
                         blobUrl = URL.createObjectURL(uploadFile);
                     }
                     
-                    const newItem = { 
-                        id: itemId, 
-                        title, 
-                        category, 
-                        url: blobUrl,
-                        mediaType: previewType,
-                        isHighlight: false,
-                        isLocal: true 
-                    };
-                    setItems([newItem, ...items]);
+                    if (adminTab === 'carousel') {
+                        const newItem = {
+                            id: itemId,
+                            title,
+                            url: blobUrl,
+                            mediaType: previewType,
+                            linkId: '',
+                            isLocal: true
+                        };
+                        setCarouselItems([...carouselItems, newItem]);
+                    } else {
+                        const newItem = { 
+                            id: itemId, 
+                            title, 
+                            category, 
+                            url: blobUrl,
+                            mediaType: previewType,
+                            isHighlight: false,
+                            isLocal: true 
+                        };
+                        setItems([newItem, ...items]);
+                    }
                     setPreview(null); setUploadFile(null); setTitle('');
                 } catch(err) {
                     console.error('Upload failed:', err);
@@ -1810,6 +1878,27 @@
             };
             const startEditItem = (item) => { setEditingItemId(item.id); setEditTitle(item.title); setEditCategory(item.category); };
             const saveEditItem = (id) => { setItems(items.map(item => item.id === id ? { ...item, title: editTitle, category: editCategory } : item)); setEditingItemId(null); };
+
+            // Carousel Specific Logic
+            const deleteCarouselItem = async (id) => {
+                if (window.confirm('Excluir este item do carrossel?')) {
+                    try { await MediaDB.remove(id); } catch(e) {}
+                    setCarouselItems(carouselItems.filter(item => item.id !== id));
+                }
+            };
+            const startEditCarouselItem = (item) => { setEditingCarouselId(item.id); setEditCarouselTitle(item.title); setEditCarouselLinkId(item.linkId || ''); };
+            const saveEditCarouselItem = (id) => { setCarouselItems(carouselItems.map(item => item.id === id ? { ...item, title: editCarouselTitle, linkId: editCarouselLinkId } : item)); setEditingCarouselId(null); };
+
+            const handleSortStart = (idx) => setDraggedCarouselIdx(idx);
+            const handleSortEnter = (idx) => {
+                if (draggedCarouselIdx === null || draggedCarouselIdx === idx) return;
+                const newItems = [...carouselItems];
+                const draggedItem = newItems[draggedCarouselIdx];
+                newItems.splice(draggedCarouselIdx, 1);
+                newItems.splice(idx, 0, draggedItem);
+                setDraggedCarouselIdx(idx);
+                setCarouselItems(newItems);
+            };
 
             const updateColor = (key, hex) => { setConfig(prev => ({ ...prev, colors: { ...prev.colors, [key]: hex } })); };
 
@@ -1840,16 +1929,28 @@
                             <div className="p-4 bg-white/5 rounded-2xl border border-white/10"><LayoutDashboard size={32} className="text-white" /></div>
                             <div><h1 className="text-3xl font-bold tracking-tight text-white">Console Admin</h1><p className="text-[#86868b] mt-1">Gerencie seu ecossistema digital.</p></div>
                         </div>
-                        <button onClick={() => setView('pricing')} className="bg-primary/20 text-white border border-primary/50 hover:bg-primary/40 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(var(--color-primary),0.3)]">
-                            <Tag size={18} /> Editar Preços
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="flex bg-[#1c1c1e] rounded-xl border border-white/10 p-1 hidden md:flex">
+                                <button onClick={() => setAdminTab('portfolio')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${adminTab === 'portfolio' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>Acervo Geral</button>
+                                <button onClick={() => setAdminTab('carousel')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${adminTab === 'carousel' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-white'}`}>Editor de Carrossel</button>
+                            </div>
+                            <button onClick={() => setView('pricing')} className="bg-primary/20 text-white border border-primary/50 hover:bg-primary/40 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(var(--color-primary),0.3)]">
+                                <Tag size={18} /> Editar Preços
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* Mobile Tab Switcher */}
+                    <div className="flex md:hidden bg-[#1c1c1e] rounded-xl border border-white/10 p-1 mb-6">
+                        <button onClick={() => setAdminTab('portfolio')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${adminTab === 'portfolio' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>Acervo Geral</button>
+                        <button onClick={() => setAdminTab('carousel')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${adminTab === 'carousel' ? 'bg-primary/20 text-primary' : 'text-gray-400 hover:text-white'}`}>Editor de Carrossel</button>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div className="lg:col-span-5 flex flex-col gap-8">
 
                             <div className="glass p-8 rounded-3xl subtle-neon-hover-primary">
-                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white"><Upload size={20} className="text-primary" /> Novo Arquivo</h2>
+                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white"><Upload size={20} className="text-primary" /> {adminTab === 'carousel' ? 'Adicionar ao Carrossel (Max 5)' : 'Novo Arquivo'}</h2>
                                 <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                                     <div className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative overflow-hidden ${isDragging ? 'border-primary bg-primary/5' : 'border-white/10 hover:border-white/30 bg-[#1c1c1e]'} ${preview ? 'p-2 border-solid border-primary/30' : ''}`}
                                         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} onClick={() => document.getElementById('file-upload').click()}
@@ -1878,10 +1979,12 @@
                                         )}
                                     </div>
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none text-sm transition-all" placeholder="Título do Projeto" required />
-                                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none cursor-pointer text-sm transition-all appearance-none">
-                                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                    </select>
-                                    <button type="submit" disabled={!uploadFile || !title || isUploading} className="bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2">
+                                    {adminTab === 'portfolio' && (
+                                        <select value={category} onChange={(e) => setCategory(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none cursor-pointer text-sm transition-all appearance-none">
+                                            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                        </select>
+                                    )}
+                                    <button type="submit" disabled={!uploadFile || !title || isUploading || (adminTab === 'carousel' && carouselItems.length >= 5)} className="bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer">
                                         {isUploading ? <><span className="animate-spin inline-block w-5 h-5 border-2 border-black border-t-transparent rounded-full" /> Salvando...</> : <><CheckCircle size={20} /> Publicar</>}
                                     </button>
                                 </form>
@@ -1986,63 +2089,110 @@
                         </div>
 
                         <div className="lg:col-span-7 glass p-8 rounded-3xl flex flex-col h-full max-h-[880px]">
-                            <h2 className="text-xl font-bold mb-8 flex items-center gap-2 text-white"><Box size={20} className="text-white" /> Acervo do Portfólio</h2>
+                            <h2 className="text-xl font-bold mb-8 flex items-center gap-2 text-white"><Box size={20} className="text-white" /> {adminTab === 'carousel' ? 'Mídias do Carrossel' : 'Acervo do Portfólio'}</h2>
                             <div className="flex-1 overflow-y-auto pr-3 flex flex-col gap-4 custom-scrollbar">
-                                {items.length === 0 ? (
-                                    <div className="text-center py-20 text-[#86868b]"><Box size={48} className="mx-auto mb-4 opacity-20" /><p>Nenhum projeto.</p></div>
-                                ) : (
-                                    <AnimatePresence>
-                                        {items.map(item => (
-                                            <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                                                className={`bg-[#1c1c1e] border rounded-2xl p-4 flex gap-5 items-center group transition-all ${item.isHighlight ? 'border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.1)]' : 'border-white/5 hover:border-white/20'}`}
-                                            >
-                                                <div className="relative w-24 h-24 shrink-0">
-                                                    <MediaThumbnail src={item.url} mediaType={item.mediaType} alt={item.title} className="w-24 h-24 rounded-xl object-cover border border-white/10 shadow-md" />
-                                                    {item.mediaType === 'video' && <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">🎬</div>}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    {editingItemId === item.id ? (
-                                                        <div className="flex flex-col gap-2">
-                                                            <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary" />
-                                                            <select value={editCategory} onChange={e => setEditCategory(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary">
-                                                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                                            </select>
-                                                            <div className="flex gap-2 mt-2">
-                                                                <button onClick={() => saveEditItem(item.id)} className="text-xs font-bold bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200">Salvar</button>
-                                                                <button onClick={() => setEditingItemId(null)} className="text-xs font-bold bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20">Cancelar</button>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            <h4 className="font-bold truncate text-lg text-white mb-1 flex items-center gap-2">
-                                                                {item.title}
-                                                                {item.isHighlight && <Crown size={16} className="text-yellow-500 fill-yellow-500" />}
-                                                            </h4>
-                                                            <span className="text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1 rounded-full inline-block border border-white/5 uppercase tracking-wide">{item.category}</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                                {editingItemId !== item.id && (
-                                                    <div className="flex flex-col gap-2 shrink-0">
-                                                        <button 
-                                                            onClick={() => {
-                                                                const newItems = [...items];
-                                                                const idx = newItems.findIndex(i => i.id === item.id);
-                                                                newItems[idx].isHighlight = !newItems[idx].isHighlight;
-                                                                setItems(newItems);
-                                                            }}
-                                                            title={item.isHighlight ? "Remover dos destaques" : "Promover a destaque"}
-                                                            className={`p-3 rounded-xl transition-all ${item.isHighlight ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                                                        >
-                                                            <Crown size={18} fill={item.isHighlight ? "currentColor" : "none"} />
-                                                        </button>
-                                                        <button onClick={() => startEditItem(item)} className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"><Edit3 size={18} /></button>
-                                                        <button onClick={() => deleteItem(item.id)} className="p-3 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all"><Trash2 size={18} /></button>
+                                {adminTab === 'carousel' ? (
+                                    carouselItems.length === 0 ? (
+                                        <div className="text-center py-20 text-[#86868b]"><Box size={48} className="mx-auto mb-4 opacity-20" /><p>Nenhum item no carrossel.</p></div>
+                                    ) : (
+                                        <AnimatePresence>
+                                            {carouselItems.map((item, idx) => (
+                                                <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                                                    draggable
+                                                    onDragStart={() => handleSortStart(idx)}
+                                                    onDragEnter={() => handleSortEnter(idx)}
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    className="bg-[#1c1c1e] border border-white/5 hover:border-white/20 rounded-2xl p-4 flex gap-5 items-center group transition-all cursor-move relative"
+                                                >
+                                                    <div className="absolute left-2 text-gray-600 opacity-50 cursor-move"><GripVertical size={20} /></div>
+                                                    <div className="relative w-24 h-24 shrink-0 ml-4 pointer-events-none">
+                                                        <MediaThumbnail src={item.url} mediaType={item.mediaType} alt={item.title} className="w-24 h-24 rounded-xl object-cover border border-white/10 shadow-md" />
                                                     </div>
-                                                )}
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
+                                                    <div className="flex-1 min-w-0">
+                                                        {editingCarouselId === item.id ? (
+                                                            <div className="flex flex-col gap-2">
+                                                                <input type="text" value={editCarouselTitle} onChange={e => setEditCarouselTitle(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary" placeholder="Título" />
+                                                                <input type="text" value={editCarouselLinkId} onChange={e => setEditCarouselLinkId(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary" placeholder="ID da Mídia (opcional)" />
+                                                                <div className="flex gap-2 mt-2">
+                                                                    <button onClick={() => saveEditCarouselItem(item.id)} className="text-xs font-bold bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 cursor-pointer">Salvar</button>
+                                                                    <button onClick={() => setEditingCarouselId(null)} className="text-xs font-bold bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 cursor-pointer">Cancelar</button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <h4 className="font-bold truncate text-lg text-white mb-1 flex items-center gap-2">{item.title}</h4>
+                                                                {item.linkId && <span className="text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1 rounded-full inline-block border border-white/5 truncate max-w-full">Link: {item.linkId}</span>}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    {editingCarouselId !== item.id && (
+                                                        <div className="flex flex-col gap-2 shrink-0">
+                                                            <button onClick={() => startEditCarouselItem(item)} className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all cursor-pointer"><Edit3 size={18} /></button>
+                                                            <button onClick={() => deleteCarouselItem(item.id)} className="p-3 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all cursor-pointer"><Trash2 size={18} /></button>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
+                                    )
+                                ) : (
+                                    items.length === 0 ? (
+                                        <div className="text-center py-20 text-[#86868b]"><Box size={48} className="mx-auto mb-4 opacity-20" /><p>Nenhum projeto.</p></div>
+                                    ) : (
+                                        <AnimatePresence>
+                                            {items.map(item => (
+                                                <motion.div key={item.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                                                    className={`bg-[#1c1c1e] border rounded-2xl p-4 flex gap-5 items-center group transition-all ${item.isHighlight ? 'border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.1)]' : 'border-white/5 hover:border-white/20'}`}
+                                                >
+                                                    <div className="relative w-24 h-24 shrink-0">
+                                                        <MediaThumbnail src={item.url} mediaType={item.mediaType} alt={item.title} className="w-24 h-24 rounded-xl object-cover border border-white/10 shadow-md" />
+                                                        {item.mediaType === 'video' && <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">🎬</div>}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        {editingItemId === item.id ? (
+                                                            <div className="flex flex-col gap-2">
+                                                                <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary" />
+                                                                <select value={editCategory} onChange={e => setEditCategory(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary">
+                                                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                                                </select>
+                                                                <div className="flex gap-2 mt-2">
+                                                                    <button onClick={() => saveEditItem(item.id)} className="text-xs font-bold bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 cursor-pointer">Salvar</button>
+                                                                    <button onClick={() => setEditingItemId(null)} className="text-xs font-bold bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 cursor-pointer">Cancelar</button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <h4 className="font-bold truncate text-lg text-white mb-1 flex items-center gap-2">
+                                                                    {item.title}
+                                                                    {item.isHighlight && <Crown size={16} className="text-yellow-500 fill-yellow-500" />}
+                                                                </h4>
+                                                                <span className="text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1 rounded-full inline-block border border-white/5 uppercase tracking-wide">{item.category}</span>
+                                                                <div className="text-[10px] text-gray-600 mt-2 truncate w-full" title={item.id}>ID: {item.id}</div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    {editingItemId !== item.id && (
+                                                        <div className="flex flex-col gap-2 shrink-0">
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const newItems = [...items];
+                                                                    const idx = newItems.findIndex(i => i.id === item.id);
+                                                                    newItems[idx].isHighlight = !newItems[idx].isHighlight;
+                                                                    setItems(newItems);
+                                                                }}
+                                                                title={item.isHighlight ? "Remover dos destaques" : "Promover a destaque"}
+                                                                className={`p-3 rounded-xl transition-all cursor-pointer ${item.isHighlight ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            >
+                                                                <Crown size={18} fill={item.isHighlight ? "currentColor" : "none"} />
+                                                            </button>
+                                                            <button onClick={() => startEditItem(item)} className="p-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all cursor-pointer"><Edit3 size={18} /></button>
+                                                            <button onClick={() => deleteItem(item.id)} className="p-3 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all cursor-pointer"><Trash2 size={18} /></button>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
+                                    )
                                 )}
                             </div>
                         </div>
