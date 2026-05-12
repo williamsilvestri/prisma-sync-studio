@@ -326,16 +326,23 @@
                                         </div>
                                     </div>
                                 ) : item.mediaType === 'carousel' && Array.isArray(item.url) ? (
-                                    <div className="flex overflow-x-auto snap-x custom-scrollbar w-[85vw] max-w-[85vw]" style={{ maxHeight: 'calc(80vh - 70px)' }}>
-                                        {item.url.map((u, i) => (
-                                            <img
-                                                key={i}
-                                                src={u} alt={`${item.title} ${i + 1}`}
-                                                style={{ maxHeight: 'calc(80vh - 70px)', display: 'block' }}
-                                                className="object-contain snap-center shrink-0 w-full"
-                                            />
-                                        ))}
-                                    </div>
+                                    (() => {
+                                        const [slideIdx, setSlideIdx] = React.useState(0);
+                                        const total = item.url.length;
+                                        return (
+                                            <div className="relative" style={{ maxHeight: 'calc(80vh - 70px)' }}>
+                                                <img src={item.url[slideIdx]} alt={`${item.title} ${slideIdx + 1}`} style={{ maxWidth: '85vw', maxHeight: 'calc(80vh - 70px)', display: 'block' }} className="object-contain" />
+                                                {total > 1 && (<>
+                                                    <button onClick={(e) => { e.stopPropagation(); setSlideIdx((slideIdx - 1 + total) % total); }} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-black/70 transition-all cursor-pointer"><ChevronLeft size={22} /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); setSlideIdx((slideIdx + 1) % total); }} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-black/70 transition-all cursor-pointer"><ChevronRight size={22} /></button>
+                                                    <div className="absolute bottom-3 inset-x-0 flex justify-center gap-1.5">
+                                                        {item.url.map((_, i) => (<div key={i} className={`w-2 h-2 rounded-full transition-all ${i === slideIdx ? 'bg-white scale-125' : 'bg-white/30'}`} />))}
+                                                    </div>
+                                                    <div className="absolute top-3 right-3 bg-black/60 text-white text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm">{slideIdx + 1}/{total}</div>
+                                                </>)}
+                                            </div>
+                                        );
+                                    })()
                                 ) : (
                                     <img
                                         src={item.url} alt={item.title}
@@ -1807,7 +1814,62 @@
             const [draggedCarouselIdx, setDraggedCarouselIdx] = useState(null);
             const [editingCarouselId, setEditingCarouselId] = useState(null);
             const [editCarouselTitle, setEditCarouselTitle] = useState('');
-            const [editCarouselLinkId, setEditCarouselLinkId] = useState('');
+            // 5 Slots Editor
+            const [carouselSlots, setCarouselSlots] = useState([null, null, null, null, null]);
+            const [carouselSlotPreviews, setCarouselSlotPreviews] = useState([null, null, null, null, null]);
+            const [carouselTitle, setCarouselTitle] = useState('');
+            const [isUploadingCarousel, setIsUploadingCarousel] = useState(false);
+
+            const handleSlotFile = (idx, file) => {
+                if (!file || !file.type.startsWith('image/')) return;
+                const newSlots = [...carouselSlots];
+                const newPreviews = [...carouselSlotPreviews];
+                newSlots[idx] = file;
+                newPreviews[idx] = URL.createObjectURL(file);
+                setCarouselSlots(newSlots);
+                setCarouselSlotPreviews(newPreviews);
+            };
+            const clearSlot = (idx) => {
+                const newSlots = [...carouselSlots];
+                const newPreviews = [...carouselSlotPreviews];
+                if (newPreviews[idx]) URL.revokeObjectURL(newPreviews[idx]);
+                newSlots[idx] = null;
+                newPreviews[idx] = null;
+                setCarouselSlots(newSlots);
+                setCarouselSlotPreviews(newPreviews);
+            };
+            const filledSlots = carouselSlots.filter(Boolean);
+
+            const handleCarouselSubmit = async (e) => {
+                e.preventDefault();
+                if (filledSlots.length === 0 || !carouselTitle.trim()) {
+                    alert('Coloque pelo menos 1 imagem e um título.');
+                    return;
+                }
+                setIsUploadingCarousel(true);
+                try {
+                    const itemId = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
+                    const filesToSave = carouselSlots.filter(Boolean);
+                    await MediaDB.save(itemId, filesToSave);
+                    const blobUrls = filesToSave.map(f => URL.createObjectURL(f));
+                    const newItem = {
+                        id: itemId,
+                        title: carouselTitle.trim(),
+                        url: blobUrls,
+                        mediaType: 'carousel',
+                        category: 'Social Media',
+                        isLocal: true
+                    };
+                    setCarouselItems([...carouselItems, newItem]);
+                    setCarouselSlots([null, null, null, null, null]);
+                    setCarouselSlotPreviews([null, null, null, null, null]);
+                    setCarouselTitle('');
+                } catch(err) {
+                    console.error('Carousel upload failed:', err);
+                    alert('Erro ao salvar. Tente novamente.');
+                }
+                setIsUploadingCarousel(false);
+            };
 
             const categories = ['Edição de Vídeo', 'Fotografia', 'Ilustração', 'Modelagem 3D'];
 
@@ -1916,13 +1978,10 @@
                     setCarouselItems(carouselItems.filter(item => item.id !== id));
                 }
             };
-            const startEditCarouselItem = (item) => { setEditingCarouselId(item.id); setEditCarouselTitle(item.title); setEditCarouselLinkId(item.linkId || ''); };
+            const startEditCarouselItem = (item) => { setEditingCarouselId(item.id); setEditCarouselTitle(item.title); };
             const saveEditCarouselItem = (id) => { 
-                if (!editCarouselTitle.trim()) {
-                    alert('Erro de Validação: O título não pode ficar em branco para o funcionamento do carrossel.');
-                    return;
-                }
-                setCarouselItems(carouselItems.map(item => item.id === id ? { ...item, title: editCarouselTitle.trim(), linkId: editCarouselLinkId.trim() } : item)); 
+                if (!editCarouselTitle.trim()) { alert('O título não pode ficar em branco.'); return; }
+                setCarouselItems(carouselItems.map(item => item.id === id ? { ...item, title: editCarouselTitle.trim() } : item)); 
                 setEditingCarouselId(null); 
             };
 
@@ -1986,46 +2045,56 @@
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <div className="lg:col-span-5 flex flex-col gap-8">
 
+                            {adminTab === 'carousel' ? (
                             <div className="glass p-8 rounded-3xl subtle-neon-hover-primary">
-                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white"><Upload size={20} className="text-primary" /> {adminTab === 'carousel' ? 'Adicionar ao Carrossel (Max 5)' : 'Novo Arquivo'}</h2>
+                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white"><Upload size={20} className="text-primary" /> Novo Projeto de Carrossel</h2>
+                                <form onSubmit={handleCarouselSubmit} className="flex flex-col gap-5">
+                                    <p className="text-xs text-gray-400 -mt-2">Preencha até 5 slots. Elas serão agrupadas em um card único.</p>
+                                    <div className="grid grid-cols-5 gap-2">
+                                        {carouselSlotPreviews.map((prev, idx) => (
+                                            <div key={idx} className={`relative aspect-[4/5] rounded-xl border-2 border-dashed transition-all cursor-pointer overflow-hidden group ${prev ? 'border-solid border-primary/40' : 'border-white/10 hover:border-white/30 bg-[#1c1c1e]'}`} onClick={() => document.getElementById('slot-upload-'+idx).click()}>
+                                                <input type="file" id={'slot-upload-'+idx} className="hidden" accept=".png,.jpg,.jpeg,.webp" onChange={(e) => { if(e.target.files[0]) handleSlotFile(idx, e.target.files[0]); e.target.value=''; }} />
+                                                {prev ? (<>
+                                                    <img src={prev} alt={'Slot '+(idx+1)} className="w-full h-full object-cover" />
+                                                    <button type="button" onClick={(e) => { e.stopPropagation(); clearSlot(idx); }} className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold cursor-pointer hover:bg-red-500 hover:text-white">✕</button>
+                                                    <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-center text-white font-bold py-0.5">{idx+1}</div>
+                                                </>) : (
+                                                    <div className="flex flex-col items-center justify-center h-full gap-1 pointer-events-none"><Plus size={18} className="text-gray-500" /><span className="text-[9px] text-gray-500 font-bold">{idx+1}</span></div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 text-center">{filledSlots.length}/5 imagens preenchidas</span>
+                                    <input type="text" value={carouselTitle} onChange={(e) => setCarouselTitle(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none text-sm transition-all" placeholder="Título do Projeto (ex: Social Media - Cliente X)" required />
+                                    <button type="submit" disabled={filledSlots.length === 0 || !carouselTitle.trim() || isUploadingCarousel} className="bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer">
+                                        {isUploadingCarousel ? <><span className="animate-spin inline-block w-5 h-5 border-2 border-black border-t-transparent rounded-full" /> Salvando...</> : <><CheckCircle size={20} /> Publicar Projeto</>}
+                                    </button>
+                                </form>
+                            </div>
+                            ) : (
+                            <div className="glass p-8 rounded-3xl subtle-neon-hover-primary">
+                                <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white"><Upload size={20} className="text-primary" /> Novo Arquivo</h2>
                                 <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                                    <div className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative overflow-hidden ${isDragging ? 'border-primary bg-primary/5' : 'border-white/10 hover:border-white/30 bg-[#1c1c1e]'} ${preview ? 'p-2 border-solid border-primary/30' : ''}`}
-                                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} onClick={() => document.getElementById('file-upload').click()}
-                                    >
-                                        <input type="file" id="file-upload" className="hidden" accept=".png,.jpg,.jpeg,.webp,.mp4,.mov,.webm" multiple onChange={handleFileSelect} />
+                                    <div className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative overflow-hidden ${isDragging ? 'border-primary bg-primary/5' : 'border-white/10 hover:border-white/30 bg-[#1c1c1e]'} ${preview ? 'p-2 border-solid border-primary/30' : ''}`} onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} onClick={() => document.getElementById('file-upload').click()}>
+                                        <input type="file" id="file-upload" className="hidden" accept=".png,.jpg,.jpeg,.webp,.mp4,.mov,.webm" onChange={handleFileSelect} />
                                         {preview ? (
                                             <div className="relative group rounded-xl overflow-hidden h-48 w-full">
-                                                {previewType === 'video' ? (
-                                                    <video src={preview} className="w-full h-full object-cover" muted loop autoPlay playsInline />
-                                                ) : previewType === 'carousel' ? (
-                                                    <div className="flex h-full w-full overflow-x-auto snap-x custom-scrollbar">
-                                                        {preview.map((p, i) => <img key={i} src={p} alt={`Preview ${i}`} className="h-full w-full object-cover snap-center shrink-0 border-r border-black/20" />)}
-                                                    </div>
-                                                ) : (
-                                                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                                                )}
-                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-lg border border-white/20">Trocar arquivo(s)</span>
-                                                </div>
-                                                <div className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold uppercase px-2 py-1 rounded-lg">
-                                                    {previewType === 'video' ? '🎬 Vídeo' : previewType === 'carousel' ? '🎠 Carrossel' : '🖼️ Imagem'}
-                                                </div>
+                                                {previewType === 'video' ? (<video src={preview} className="w-full h-full object-cover" muted loop autoPlay playsInline />) : (<img src={preview} alt="Preview" className="w-full h-full object-cover" />)}
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><span className="text-white font-medium bg-black/50 px-4 py-2 rounded-lg border border-white/20">Trocar arquivo</span></div>
+                                                <div className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold uppercase px-2 py-1 rounded-lg">{previewType === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}</div>
                                             </div>
                                         ) : (
-                                            <div className="flex flex-col items-center gap-4 py-6 pointer-events-none"><div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><Upload size={24} className="text-white" /></div><div><p className="text-base font-semibold text-white">Arraste imagens (várias para carrossel) ou vídeo</p><p className="text-sm text-[#86868b] mt-1">.png .jpg .mp4 .mov .webm</p></div></div>
+                                            <div className="flex flex-col items-center gap-4 py-6 pointer-events-none"><div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><Upload size={24} className="text-white" /></div><div><p className="text-base font-semibold text-white">Arraste imagem ou vídeo</p><p className="text-sm text-[#86868b] mt-1">.png .jpg .mp4 .mov .webm</p></div></div>
                                         )}
                                     </div>
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none text-sm transition-all" placeholder="Título do Projeto" required />
-                                    {adminTab === 'portfolio' && (
-                                        <select value={category} onChange={(e) => setCategory(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none cursor-pointer text-sm transition-all appearance-none">
-                                            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                        </select>
-                                    )}
-                                    <button type="submit" disabled={!uploadFile || !title || isUploading || (adminTab === 'carousel' && carouselItems.length >= 5)} className="bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer">
+                                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none cursor-pointer text-sm transition-all appearance-none">{categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select>
+                                    <button type="submit" disabled={!uploadFile || !title || isUploading} className="bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer">
                                         {isUploading ? <><span className="animate-spin inline-block w-5 h-5 border-2 border-black border-t-transparent rounded-full" /> Salvando...</> : <><CheckCircle size={20} /> Publicar</>}
                                     </button>
                                 </form>
                             </div>
+                            )}
 
                             <div className="glass p-8 rounded-3xl subtle-neon-hover-secondary">
                                 <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-white"><Settings size={20} className="text-secondary" /> Personalização de Sistema</h2>
@@ -2149,7 +2218,6 @@
                                                         {editingCarouselId === item.id ? (
                                                             <div className="flex flex-col gap-2">
                                                                 <input type="text" value={editCarouselTitle} onChange={e => setEditCarouselTitle(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary" placeholder="Título" />
-                                                                <input type="text" value={editCarouselLinkId} onChange={e => setEditCarouselLinkId(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary" placeholder="ID da Mídia (opcional)" />
                                                                 <div className="flex gap-2 mt-2">
                                                                     <button onClick={() => saveEditCarouselItem(item.id)} className="text-xs font-bold bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 cursor-pointer">Salvar</button>
                                                                     <button onClick={() => setEditingCarouselId(null)} className="text-xs font-bold bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 cursor-pointer">Cancelar</button>
@@ -2158,7 +2226,7 @@
                                                         ) : (
                                                             <>
                                                                 <h4 className="font-bold truncate text-lg text-white mb-1 flex items-center gap-2">{item.title}</h4>
-                                                                {item.linkId && <span className="text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1 rounded-full inline-block border border-white/5 truncate max-w-full">Link: {item.linkId}</span>}
+                                                                <span className="text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1 rounded-full inline-block border border-white/5">{Array.isArray(item.url) ? `📸 ${item.url.length} imagens` : '🖼️ 1 imagem'}</span>
                                                             </>
                                                         )}
                                                     </div>
