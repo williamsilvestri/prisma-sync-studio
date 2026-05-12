@@ -1814,6 +1814,7 @@
             const [draggedCarouselIdx, setDraggedCarouselIdx] = useState(null);
             const [editingCarouselId, setEditingCarouselId] = useState(null);
             const [editCarouselTitle, setEditCarouselTitle] = useState('');
+            const [editCarouselCategory, setEditCarouselCategory] = useState('');
             // 5 Slots Editor
             const [carouselSlots, setCarouselSlots] = useState([null, null, null, null, null]);
             const [carouselSlotPreviews, setCarouselSlotPreviews] = useState([null, null, null, null, null]);
@@ -1980,10 +1981,10 @@
                     setCarouselItems(carouselItems.filter(item => item.id !== id));
                 }
             };
-            const startEditCarouselItem = (item) => { setEditingCarouselId(item.id); setEditCarouselTitle(item.title); };
+            const startEditCarouselItem = (item) => { setEditingCarouselId(item.id); setEditCarouselTitle(item.title); setEditCarouselCategory(item.category || 'Edição de Vídeo'); };
             const saveEditCarouselItem = (id) => { 
                 if (!editCarouselTitle.trim()) { alert('O título não pode ficar em branco.'); return; }
-                setCarouselItems(carouselItems.map(item => item.id === id ? { ...item, title: editCarouselTitle.trim() } : item)); 
+                setCarouselItems(carouselItems.map(item => item.id === id ? { ...item, title: editCarouselTitle.trim(), category: editCarouselCategory } : item)); 
                 setEditingCarouselId(null); 
             };
 
@@ -2068,7 +2069,10 @@
                                     </div>
                                     <span className="text-[10px] text-gray-500 text-center">{filledSlots.length}/5 imagens preenchidas</span>
                                     <input type="text" value={carouselTitle} onChange={(e) => setCarouselTitle(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none text-sm transition-all" placeholder="Título do Projeto (ex: Social Media - Cliente X)" required />
-                                    <select value={carouselCategory} onChange={(e) => setCarouselCategory(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none cursor-pointer text-sm transition-all appearance-none">{categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select>
+                                    <div className="relative">
+                                        <select value={carouselCategory} onChange={(e) => setCarouselCategory(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 w-full text-white focus:border-primary outline-none cursor-pointer text-sm transition-all appearance-none">{categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select>
+                                        <ChevronDown size={18} className="text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    </div>
                                     <button type="submit" disabled={filledSlots.length === 0 || !carouselTitle.trim() || isUploadingCarousel} className="bg-white text-black font-bold py-4 rounded-xl hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2 mt-2 cursor-pointer">
                                         {isUploadingCarousel ? <><span className="animate-spin inline-block w-5 h-5 border-2 border-black border-t-transparent rounded-full" /> Salvando...</> : <><CheckCircle size={20} /> Publicar Projeto</>}
                                     </button>
@@ -2221,6 +2225,12 @@
                                                         {editingCarouselId === item.id ? (
                                                             <div className="flex flex-col gap-2">
                                                                 <input type="text" value={editCarouselTitle} onChange={e => setEditCarouselTitle(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 rounded-lg text-sm w-full outline-none focus:border-primary" placeholder="Título" />
+                                                                <div className="relative">
+                                                                    <select value={editCarouselCategory} onChange={e => setEditCarouselCategory(e.target.value)} className="bg-black/50 border border-white/20 text-white p-2 w-full rounded-lg text-sm outline-none focus:border-primary cursor-pointer appearance-none">
+                                                                        {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                                                    </select>
+                                                                    <ChevronDown size={14} className="text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                                                </div>
                                                                 <div className="flex gap-2 mt-2">
                                                                     <button onClick={() => saveEditCarouselItem(item.id)} className="text-xs font-bold bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 cursor-pointer">Salvar</button>
                                                                     <button onClick={() => setEditingCarouselId(null)} className="text-xs font-bold bg-white/10 text-white px-4 py-2 rounded-lg hover:bg-white/20 cursor-pointer">Cancelar</button>
