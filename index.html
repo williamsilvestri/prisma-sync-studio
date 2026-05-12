@@ -222,6 +222,9 @@
             if (mediaType === 'video') {
                 return <video src={src} className={className} muted loop playsInline autoPlay={autoPlay} preload="metadata" />;
             }
+            if (mediaType === 'carousel' && Array.isArray(src)) {
+                return <img src={src[0]} alt={alt || ''} className={className} />;
+            }
             return <img src={src} alt={alt || ''} className={className} />;
         }
 
@@ -321,6 +324,17 @@
                                                 <Maximize size={18} />
                                             </button>
                                         </div>
+                                    </div>
+                                ) : item.mediaType === 'carousel' && Array.isArray(item.url) ? (
+                                    <div className="flex overflow-x-auto snap-x custom-scrollbar w-[85vw] max-w-[85vw]" style={{ maxHeight: 'calc(80vh - 70px)' }}>
+                                        {item.url.map((u, i) => (
+                                            <img
+                                                key={i}
+                                                src={u} alt={`${item.title} ${i + 1}`}
+                                                style={{ maxHeight: 'calc(80vh - 70px)', display: 'block' }}
+                                                className="object-contain snap-center shrink-0 w-full"
+                                            />
+                                        ))}
                                     </div>
                                 ) : (
                                     <img
@@ -513,6 +527,9 @@
                                 try {
                                     const blob = await MediaDB.load(item.id);
                                     if (blob) {
+                                        if (Array.isArray(blob)) {
+                                            return { ...item, url: blob.map(b => URL.createObjectURL(b)) };
+                                        }
                                         return { ...item, url: URL.createObjectURL(blob) };
                                     }
                                 } catch(e) { console.warn('Could not restore media for', item.id); }
@@ -1722,25 +1739,34 @@
 
             const categories = ['Edição de Vídeo', 'Fotografia', 'Ilustração', 'Modelagem 3D'];
 
-            const processFile = (file) => {
-                if (!file) return;
-                const isVideo = file.type.startsWith('video/');
-                const isImage = file.type.startsWith('image/');
-                if (!isVideo && !isImage) return;
+            const processFile = (files) => {
+                if (!files || files.length === 0) return;
+                
+                if (files.length > 1) {
+                    const fileArray = Array.from(files).filter(f => f.type.startsWith('image/'));
+                    if (fileArray.length === 0) return;
+                    setUploadFile(fileArray);
+                    setPreviewType('carousel');
+                    setPreview(fileArray.map(f => URL.createObjectURL(f)));
+                } else {
+                    const file = files[0];
+                    const isVideo = file.type.startsWith('video/');
+                    const isImage = file.type.startsWith('image/');
+                    if (!isVideo && !isImage) return;
 
-                setUploadFile(file);
-                setPreviewType(isVideo ? 'video' : 'image');
-                const objectUrl = URL.createObjectURL(file);
-                setPreview(objectUrl);
+                    setUploadFile(file);
+                    setPreviewType(isVideo ? 'video' : 'image');
+                    setPreview(URL.createObjectURL(file));
+                }
             };
 
             const handleDrop = (e) => {
                 e.preventDefault(); setIsDragging(false);
-                processFile(e.dataTransfer.files[0]);
+                processFile(e.dataTransfer.files);
             };
 
             const handleFileSelect = (e) => {
-                processFile(e.target.files[0]);
+                processFile(e.target.files);
             };
 
             const handleSubmit = async (e) => {
@@ -1749,9 +1775,15 @@
                 setIsUploading(true);
                 try {
                     const itemId = Date.now().toString();
-                    // Store file blob in IndexedDB (no size limit)
                     await MediaDB.save(itemId, uploadFile);
-                    const blobUrl = URL.createObjectURL(uploadFile);
+                    
+                    let blobUrl;
+                    if (previewType === 'carousel') {
+                        blobUrl = uploadFile.map(f => URL.createObjectURL(f));
+                    } else {
+                        blobUrl = URL.createObjectURL(uploadFile);
+                    }
+                    
                     const newItem = { 
                         id: itemId, 
                         title, 
@@ -1822,23 +1854,27 @@
                                     <div className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative overflow-hidden ${isDragging ? 'border-primary bg-primary/5' : 'border-white/10 hover:border-white/30 bg-[#1c1c1e]'} ${preview ? 'p-2 border-solid border-primary/30' : ''}`}
                                         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }} onDragLeave={() => setIsDragging(false)} onDrop={handleDrop} onClick={() => document.getElementById('file-upload').click()}
                                     >
-                                        <input type="file" id="file-upload" className="hidden" accept=".png,.jpg,.jpeg,.webp,.mp4,.mov,.webm" onChange={handleFileSelect} />
+                                        <input type="file" id="file-upload" className="hidden" accept=".png,.jpg,.jpeg,.webp,.mp4,.mov,.webm" multiple onChange={handleFileSelect} />
                                         {preview ? (
                                             <div className="relative group rounded-xl overflow-hidden h-48 w-full">
                                                 {previewType === 'video' ? (
                                                     <video src={preview} className="w-full h-full object-cover" muted loop autoPlay playsInline />
+                                                ) : previewType === 'carousel' ? (
+                                                    <div className="flex h-full w-full overflow-x-auto snap-x custom-scrollbar">
+                                                        {preview.map((p, i) => <img key={i} src={p} alt={`Preview ${i}`} className="h-full w-full object-cover snap-center shrink-0 border-r border-black/20" />)}
+                                                    </div>
                                                 ) : (
                                                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                                                 )}
                                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-lg border border-white/20">Trocar arquivo</span>
+                                                    <span className="text-white font-medium bg-black/50 px-4 py-2 rounded-lg border border-white/20">Trocar arquivo(s)</span>
                                                 </div>
                                                 <div className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold uppercase px-2 py-1 rounded-lg">
-                                                    {previewType === 'video' ? '🎬 Vídeo' : '🖼️ Imagem'}
+                                                    {previewType === 'video' ? '🎬 Vídeo' : previewType === 'carousel' ? '🎠 Carrossel' : '🖼️ Imagem'}
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex flex-col items-center gap-4 py-6 pointer-events-none"><div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><Upload size={24} className="text-white" /></div><div><p className="text-base font-semibold text-white">Arraste imagem ou vídeo</p><p className="text-sm text-[#86868b] mt-1">.png .jpg .mp4 .mov .webm</p></div></div>
+                                            <div className="flex flex-col items-center gap-4 py-6 pointer-events-none"><div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><Upload size={24} className="text-white" /></div><div><p className="text-base font-semibold text-white">Arraste imagens (várias para carrossel) ou vídeo</p><p className="text-sm text-[#86868b] mt-1">.png .jpg .mp4 .mov .webm</p></div></div>
                                         )}
                                     </div>
                                     <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="bg-[#1c1c1e] border border-white/10 rounded-xl p-4 text-white focus:border-primary outline-none text-sm transition-all" placeholder="Título do Projeto" required />
